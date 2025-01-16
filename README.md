@@ -19,27 +19,9 @@ This repository provides a structured set of Terraform modules for deploying Che
  
 **Submodules:**
 
-* [`high_availability_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/high_availability_existing_vnet) - Deploys CloudGuard High Availability solution into an existing VNet in azure.
-
-* [`high_availability_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/high_availability_new_vnet) Deploys CloudGuard High Availability solution into a new VNet.
-
-* [`management_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/management_existing_vnet) - Deploys CloudGuard Management solution into an existing VNet.
-
 * [`management_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/management_new_vnet) - Deploys CloudGuard Management solution into a new VNet.
 
-* [`mds_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/mds_existing_vnet) - Deploys CloudGuard Management solution into a new VNet.
-
-* [`mds_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/mds_new_vnet) - Deploys CloudGuard Management solution into a new VNet.
-
-* [`nva_into_existing_hub`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/nva_into_existing_hub) - Deploys CloudGuard Virtual WAN NVA solution into an existing vWAN Hub.
-
-* [`nva_into_new_vwan`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/nva_into_new_vwan) - Deploys CloudGuard Virtual WAN NVA solution into a new vWAN Hub.
-
-* [`single_gateway_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/single_gateway_existing_vnet) - Deploys CloudGuard Single Gateway solution into an existing VNet.
-
 * [`single_gateway_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/single_gateway_new_vnet) - Deploys CloudGuard Single Gateway solution into a new VNet.                   
-
-* [`vmss_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/vmss_existing_vnet) - Deploys CloudGuard VMSS solution into an existing VNet.
 
 * [`vmss_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/vmss_new_vnet) - Deploys CloudGuard VMSS solution into a new VNet.
 
