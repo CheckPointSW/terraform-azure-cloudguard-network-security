@@ -28,6 +28,7 @@ module "example_module" {
     source  = "CheckPointSW/cloudguard-network-security/azure//modules/management_new_vnet"
     version = "1.0.4"
 
+
     source_image_vhd_uri            = "noCustomUri"
     resource_group_name             = "checkpoint-mgmt-terraform"
     mgmt_name                       = "checkpoint-mgmt-terraform"
