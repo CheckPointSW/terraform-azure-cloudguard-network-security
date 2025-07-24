@@ -41,7 +41,7 @@ locals {
 
 data "http" "image-versions" {
   method = "GET"
-  url = "https://management.azure.com/subscriptions/${var.subscription_id}/providers/Microsoft.Network/networkVirtualApplianceSKUs/checkpoint${var.license-type == "Full Package (NGTX + S1C)" ? "-ngtx" : var.license-type == "Full Package Premium (NGTX + S1C++)" ? "-premium" : ""}?api-version=2020-05-01"
+  url = "https://management.azure.com/subscriptions/${var.subscription_id}/providers/Microsoft.Network/networkVirtualApplianceSKUs/checkpoint${var.license-type == "Full Package (NGTX and Smart1-Cloud)" ? "-ngtx" : var.license-type == "Full Package Premium (NGTX and Smart1-Cloud Premium)" ? "-premium" : ""}?api-version=2020-05-01"
   request_headers = {
     Accept = "application/json"
     "Authorization" = "Bearer ${local.access_token}"

@@ -74,8 +74,8 @@ variable "license-type" {
   type    = string
   default = "Security Enforcement (NGTP)"
   validation {
-    condition     = contains(["Security Enforcement (NGTP)", "Full Package (NGTX + S1C)", "Full Package Premium (NGTX + S1C++)"], var.license-type)
-    error_message = "Allowed values for License Type are 'Security Enforcement (NGTP)', 'Full Package (NGTX + S1C)', 'Full Package Premium (NGTX + S1C++)'"
+    condition     = contains(["Security Enforcement (NGTP)", "Full Package (NGTX and Smart1-Cloud)", "Full Package Premium (NGTX and Smart1-Cloud Premium)"], var.license-type)
+    error_message = "Allowed values for License Type are 'Security Enforcement (NGTP)', 'Full Package (NGTX and Smart1-Cloud)', 'Full Package Premium (NGTX and Smart1-Cloud Premium)'"
   }
 }
 
