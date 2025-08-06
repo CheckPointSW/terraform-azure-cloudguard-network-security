@@ -7,7 +7,7 @@ module "common" {
   installation_type = var.installation_type
   module_name = local.module_name
   module_version = local.module_version
-  number_of_vm_instances = var.number_of_vm_instances
+  number_of_vm_instances = local.number_of_vm_instances
   allow_upload_download = var.allow_upload_download
   vm_size = var.vm_size
   disk_size = var.disk_size
@@ -217,7 +217,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   resource_group_name = module.common.resource_group_name
   sku = module.common.vm_size
   zones = local.availability_zones_num_condition
-  instances = var.number_of_vm_instances
+  instances = local.number_of_vm_instances
   overprovision = false
 
   dynamic "identity" {
