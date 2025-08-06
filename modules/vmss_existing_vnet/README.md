@@ -49,6 +49,7 @@ module "example_module" {
     availability_zones_num          = "1"
     minimum_number_of_vm_instances  = 2
     maximum_number_of_vm_instances  = 10
+    number_of_vm_instances          = 2
     management_name                 = "mgmt"
     management_IP                   = "13.92.42.181"
     management_interface            = "eth1-private"
@@ -108,6 +109,7 @@ module "example_module" {
 | **availability_zones_num** | A list of a single item of the Availability Zone which the Virtual Machine should be allocated in | string | "centralus", "eastus2", "francecentral", "northeurope", "southeastasia", "westeurope", "westus2", "eastus", "uksouth". |
 | **minimum_number_of_vm_instances** | The minimum number of VMSS instances for this resource | number | Valid values are in the range 0 - 10. |
 | **maximum_number_of_vm_instances** | The maximum number of VMSS instances for this resource | number | Valid values are in the range 0 - 10. |
+| **number_of_vm_instances**            | The default number of VMSS instances to deploy. | number | The number of VMSS instances must not be less then `minimum_number_of_vm_instances`. If the number of VMSS is greater then the `maximum_number_of_vm_instances` use the maximum number as default.<br/>**Default**: 2; |
 | **management_name** | The name of the management server as it appears in the configuration file | string | Field cannot be empty. Only alphanumeric characters or '_'/'-' are allowed, and the name must be 1-30 characters long. |
 | **management_IP** | The IP address used to manage the VMSS instances | string | A valid IP address. |
 | **management_interface** | Management option for the Gateways in the VMSS | string | "eth0-public" - Manages the GWs using their external NIC's public IP address;<br/>"eth0-private" - Manages the GWs using their external NIC's private IP address;<br/>"eth1-private" - Manages the GWs using their internal NIC's private IP address.<br/>**Default:** "eth1-private" |
