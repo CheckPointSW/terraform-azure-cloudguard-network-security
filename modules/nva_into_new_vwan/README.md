@@ -39,7 +39,7 @@ module "example_module" {
     managed-app-name                = "tf-vwan-managed-app-nva"
     nva-rg-name                     = "tf-vwan-nva-rg"
     nva-name                        = "tf-vwan-nva"
-    os-version                      = "R8120"
+    os-version                      = "R82"
     license-type                    = "Security Enforcement (NGTP)"
     scale-unit                      = "2"
     bootstrap-script                = "touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt"
@@ -82,7 +82,7 @@ module "example_module" {
 | **managed-app-name** | The name of the managed application that will be created | string | The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.<br/>**Default:** tf-vwan-managed-app |
 | **nva-name** | The name of the NVA that will be created | string | The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.<br/>**Default:** tf-vwan-nva |
 | **nva-rg-name** | The name of the resource group that will contain the NVA | string | Resource group names only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.<br/>**Default:** tf-vwan-nva-rg |
-| **os-version** | The GAIA os version | string | "R8110";<br/>"R8120";<br/>"R82";<br/>**Default:** "R8120" |
+| **os-version** | The GAIA os version | string | "R8110";<br/>"R8120";<br/>"R82";<br/>**Default:** "R82" |
 | **license-type** | The Check Point licence type | string | "Security Enforcement (NGTP)";<br/>"Full Package (NGTX and Smart1-Cloud)";<br/>"Full Package Premium (NGTX and Smart1-Cloud Premium)".<br/>**Default:** "Security Enforcement (NGTP)" |
 | **scale-unit** | The scale unit determines the size and number of resources deployed. The higher the scale unit, the greater the amount of traffic that can be handled | string | "2";<br/>"4";<br/>"10";<br/>"20";<br/>"30";<br/>"60";<br/>"80".<br/>**Default:** "2" |
 | **bootstrap_script** | An optional script to run on the initial boot | string | Bootstrap script example:<br/>"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt".<br/>The script will create bootstrap.txt file in the /home/admin/ and add 'hello word' string into it.<br/>**Default:** "" |

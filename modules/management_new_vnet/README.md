@@ -40,8 +40,8 @@ module "example_module" {
     vm_size                         = "Standard_D3_v2"
     disk_size                       = "110"
     vm_os_sku                       = "mgmt-byol"
-    vm_os_offer                     = "check-point-cg-r8110"
-    os_version                      = "R8110"
+    vm_os_offer                     = "check-point-cg-r82"
+    os_version                      = "R82"
     bootstrap_script                = "touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt"
     allow_upload_download           = true
     authentication_type             = "Password"
