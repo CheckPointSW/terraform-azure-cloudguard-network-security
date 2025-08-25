@@ -1,4 +1,4 @@
 locals {
-  module_name = "high_availability_terraform_registry"
+  module_name = "ha_terraform"
   module_version = "1.0.5"
 }
