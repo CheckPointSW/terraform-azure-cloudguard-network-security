@@ -29,7 +29,7 @@ provider "azurerm" {
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/azure//modules/vmss_new_vnet"
-    version = "1.0.4"
+    version = "1.0.5"
 
     subscription_id                 = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     source_image_vhd_uri            = "noCustomUri"
@@ -63,6 +63,9 @@ module "example_module" {
     backend_load_distribution       = "Default"
     enable_custom_metrics           = true
     enable_floating_ip              = false
+    use_public_ip_prefix            = false
+    create_public_ip_prefix         = false
+    existing_public_ip_prefix_id    = ""
     deployment_mode                 = "Standard"
     admin_shell                     = "/etc/cli.sh"
     serial_console_password_hash    = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -77,6 +80,17 @@ module "example_module" {
 - To create role assignment and enable CloudGuard metrics in order to send statuses and statistics collected from VMSS instances to the Azure Monitor service:
   ```
   enable_custom_metrics = true
+  ```
+- To create new public IP prefix for the public IP:
+  ```
+  use_public_ip_prefix            = true
+  create_public_ip_prefix         = true
+  ```
+- To use an existing public IP prefix for the public IP:
+  ```
+  use_public_ip_prefix            = true
+  create_public_ip_prefix         = false
+  existing_public_ip_prefix_id    = "public IP prefix resource id"
   ```
 
 ## Deploy Without Public IP
@@ -118,6 +132,9 @@ module "example_module" {
 | **notification_email**                | An email address to notify about scaling operations                                                                                                                    | string         | Leave empty double quotes or enter a valid email address<br />                                                                                                                                 |
 | **enable_custom_metrics**             | Indicates whether Custom Metrics will be used for VMSS Scaling policy and VM monitoring                                                                                 | boolean        | true;<br />false;<br />                                                                                                                                                                       |
 | **enable_floating_ip**                | Indicates whether the load balancers will be deployed with floating IP                                                                                                  | boolean        | true;<br />false;<br />                                                                                                                                                                       |
+| **use_public_ip_prefix**          | Indicates whether the public IP resources will be deployed with public IP prefix.                                                                                 | boolean        | true;<br />false;<br />**Default:** false                                                                                                                                                                                                                                                                                                                  |
+| **create_public_ip_prefix**       | Indicates whether the public IP prefix will be created or an existing one will be used.                                                                           | boolean        | true;<br />false;<br />**Default:** false                                                                                                                                                                                                                                                                                                                  |
+| **existing_public_ip_prefix_id**  | The existing public IP prefix resource ID.                                                                                                                       | string         | Existing public IP prefix resource ID<br />**Default:** ""                                                                                                                                                                                                                                                                                                 |
 | **deployment_mode**                   | Indicates which load balancer needs to be deployed. External + Internal (Standard), only External, only Internal                                                        | string         | Standard;<br />External;<br />Internal;<br />**Default:** "Standard"                                                                                                                                          |
 | **admin_shell**                       | Enables selecting different admin shells                                                                                                                               | string         | /etc/cli.sh;<br />/bin/bash;<br />/bin/csh;<br />/bin/tcsh;<br />**Default:** "/etc/cli.sh"                                                                                                                   |
 | **serial_console_password_hash**      | Optional parameter, used to enable serial console connection in case of SSH key as authentication type                                                                 | string         |                                                                                                                                                                                                                                        |

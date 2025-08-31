@@ -368,6 +368,24 @@ variable "enable_floating_ip" {
   default = false
 }
 
+variable "use_public_ip_prefix" {
+  description = "Indicates whether the public IP resources will be deployed with public IP prefix."
+  type = bool
+  default = false
+}
+
+variable "create_public_ip_prefix" {
+  description = "Indicates whether the public IP prefix will created or an existing will be used."
+  type = bool
+  default = false
+}
+
+variable "existing_public_ip_prefix_id" {
+  description = "The existing public IP prefix resource id."
+  type = string
+  default = ""
+}
+
 variable "nsg_id" {
   description = "NSG ID - Optional - if empty use default NSG"
   default = ""

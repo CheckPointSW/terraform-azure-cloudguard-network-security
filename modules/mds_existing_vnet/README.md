@@ -23,7 +23,7 @@ provider "azurerm" {
 module "example_module" {
 
 	source  = "CheckPointSW/cloudguard-network-security/azure//modules/mds_existing_vnet"
-	version = "1.0.4"
+	version = "1.0.5"
 
 	source_image_vhd_uri            = "noCustomUri"
 	resource_group_name             = "checkpoint-mds-rg-terraform"

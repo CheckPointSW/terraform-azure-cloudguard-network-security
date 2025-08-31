@@ -49,6 +49,14 @@ resource "random_id" "random_id" {
   }
 }
 
+resource "azurerm_public_ip_prefix" "public_ip_prefix" {
+  count = var.use_public_ip_prefix && var.create_public_ip_prefix ? 1 : 0
+  name = "${module.common.resource_group_name}-ipprefix"
+  location = module.common.resource_group_location
+  resource_group_name = module.common.resource_group_name
+  prefix_length = 30
+}
+
 resource "azurerm_public_ip" "public-ip-lb" {
   count = var.deployment_mode != "Internal" ? 1 : 0
   name = "${var.vmss_name}-app-1"
@@ -57,6 +65,7 @@ resource "azurerm_public_ip" "public-ip-lb" {
   allocation_method = module.vnet.allocation_method
   sku = var.sku
   domain_name_label = "${lower(var.vmss_name)}-${random_id.random_id.hex}"
+  public_ip_prefix_id = var.use_public_ip_prefix ? (var.create_public_ip_prefix ? azurerm_public_ip_prefix.public_ip_prefix[0].id : var.existing_public_ip_prefix_id) : null
 }
 
 resource "azurerm_lb" "frontend-lb" {
