@@ -354,7 +354,7 @@ variable "enable_custom_metrics" {
 variable "enable_floating_ip" {
   description = "Indicates whether the load balancers will be deployed with floating IP."
   type = bool
-  default = false
+  default = true
 }
 
 variable "use_public_ip_prefix" {
