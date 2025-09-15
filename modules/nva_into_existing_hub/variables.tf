@@ -196,3 +196,25 @@ locals{
   validation_message_both = "Only one parameter of existing-public-ip or new-public-ip can be used"
   _ = regex("^$", (!local.is_both_params_used ? "" : local.validation_message_both))
 }
+
+variable "plan_product" {
+  description = "Use the following plan when deploying with terraform: cp-vwan-managed-app"
+  type    = string
+  default = "cp-vwan-managed-app"
+}
+
+variable "plan_version" {
+  description = "Use the latest version of the managed application (e.g., 1.0.23) for best results. Full version list: https://support.checkpoint.com/results/sk/sk132192"
+  type    = string
+  default = "1.0.23"
+}
+
+variable "custom_license_type" {
+  description = "License type when using staged image."
+  type        = string
+  default     = ""
+  validation {
+    condition     = contains(["", "ngtp", "ngtx", "premium"], var.custom_license_type)
+    error_message = "Valid options are 'ngtp', 'ngtx', or 'premium' or empty."
+  }
+}

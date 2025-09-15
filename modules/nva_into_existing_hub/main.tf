@@ -72,7 +72,7 @@ data "http" "accept-marketplace-terms-existing-agreement" {
 resource "azurerm_marketplace_agreement" "accept-marketplace-terms" {
   count = can(jsondecode(data.http.accept-marketplace-terms-existing-agreement.response_body).id) ? (jsondecode(data.http.accept-marketplace-terms-existing-agreement.response_body).properties.state == "Active" ? 0 : 1) : 1
   publisher = "checkpoint"
-  offer     = "cp-vwan-managed-app"
+  offer     = var.plan_product
   plan      = "vwan-app"
 }
 
@@ -140,9 +140,9 @@ resource "azapi_resource" "managed-app" {
 	kind = "MarketPlace",
 	plan = {
 		name      = "vwan-app"
-		product   = "cp-vwan-managed-app"
+		product   = var.plan_product
 		publisher = "checkpoint"
-		version   = "1.0.22"
+		version   = var.plan_version
 	},
 	identity = {
 		type = "UserAssigned"
