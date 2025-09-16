@@ -40,7 +40,7 @@ variable "subnet_names" {
 
 variable "tags" {
   description = "Tags to be associated with Virtual Network and subnets"
-  type = map(string)
+  type = map(map(string))
   default = {}
 }
 variable "nsg_id" {

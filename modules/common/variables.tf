@@ -37,8 +37,8 @@ variable "maintenance_mode_password_hash" {
 }
 
 variable "tags" {
-  type        = map(string)
-  description = "A map of the tags to use on the resources that are deployed with this module."
+  description = "Tags to be associated with the resource group."
+  type = map(string)
   default = {}
 }
 

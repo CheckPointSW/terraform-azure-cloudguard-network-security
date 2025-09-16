@@ -24,7 +24,7 @@ provider "azurerm" {
 module "example_module" {
 
         source  = "CheckPointSW/cloudguard-network-security/azure//modules/management_existing_vnet"
-        version = "1.0.5"
+        version = "1.0.6"
 
         source_image_vhd_uri            = "noCustomUri"
         resource_group_name             = "checkpoint-mgmt-terraform"
@@ -85,3 +85,4 @@ module "example_module" {
 | **nsg_id** | Optional ID for a Network Security Group that already exists in Azure, if not provided, will create a default NSG | string | Existing NSG resource ID.<br/>**Default:** "" |
 | **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location, if false then accses will be allowed from all networks | boolean | true;<br/>false.<br/>**Default:** false |
 | **storage_account_additional_ips** | IPs/CIDRs that are allowed access to the Storage Account | list(string) | A list of valid IPs and CIDRs.<br/>**Default:** [] |
+| **tags** | Tags can be associated either globally across all resources or scoped to specific resource types. For example, a global tag can be defined as: {"all": {"example": "example"}}.<br/>Supported resource types for tag assignment include:<br>`all` (Applies tags universally to all resource instances)<br/>`resource-group`<br/>`network-security-group`<br/>`network-interface`<br/>`public-ip`<br/>`storage-account`<br/>`virtual-machine`<br/>`custom-image`<br/>**Important:** When identical tag keys are defined both globally under `all` and within a specific resource scope, the tag value specified under `all` overrides the resource-specific tag. | map(map(string)) | {} |

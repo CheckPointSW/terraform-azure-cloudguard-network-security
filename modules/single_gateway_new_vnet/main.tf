@@ -19,6 +19,7 @@ module "common" {
   serial_console_password_hash = var.serial_console_password_hash
   maintenance_mode_password_hash = var.maintenance_mode_password_hash
   storage_account_additional_ips = var.storage_account_additional_ips
+  tags = merge(lookup(var.tags, "resource-group", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Networking **************************//
@@ -31,7 +32,8 @@ module "vnet" {
   address_space = var.address_space
   subnet_prefixes = [var.frontend_subnet_prefix, var.backend_subnet_prefix]
   subnet_names = ["${var.single_gateway_name}-frontend-subnet", "${var.single_gateway_name}-backend-subnet"]
-  nsg_id = var.nsg_id == "" ? module.network_security_group[0].network_security_group_id: var.nsg_id
+  nsg_id = var.nsg_id == "" ? module.network_security_group[0].network_security_group_id : var.nsg_id
+  tags = var.tags
 }
 
 module "network_security_group" {
@@ -41,6 +43,7 @@ module "network_security_group" {
   security_group_name = "${module.common.resource_group_name}-nsg"
   location = module.common.resource_group_location
   security_rules = var.security_rules
+  tags = merge(lookup(var.tags, "network-security-group", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_public_ip" "public-ip" {
@@ -54,6 +57,8 @@ resource "azurerm_public_ip" "public-ip" {
     lower(var.single_gateway_name),
     "-",
     random_id.randomId.hex])
+
+  tags = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_network_interface_security_group_association" "security_group_association" {
@@ -79,6 +84,8 @@ resource "azurerm_network_interface" "nic" {
     private_ip_address = cidrhost(var.frontend_subnet_prefix, 4)
     public_ip_address_id = azurerm_public_ip.public-ip.id
   }
+
+  tags = merge(lookup(var.tags, "network-interface", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_network_interface" "nic1" {
@@ -96,6 +103,8 @@ resource "azurerm_network_interface" "nic1" {
     private_ip_address_allocation = var.vnet_allocation_method
     private_ip_address = cidrhost(var.backend_subnet_prefix, 4)
   }
+
+  tags = merge(lookup(var.tags, "network-interface", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Storage accounts **************************//
@@ -125,6 +134,7 @@ resource "azurerm_storage_account" "vm-boot-diagnostics-storage" {
     }
   }
 
+  tags = merge(lookup(var.tags, "storage-account", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Virtual Machines **************************//
@@ -144,6 +154,8 @@ resource "azurerm_image" "custom-image" {
     os_state = "Generalized"
     blob_uri = var.source_image_vhd_uri
   }
+
+  tags = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_virtual_machine" "single-gateway-vm-instance" {
@@ -231,4 +243,6 @@ resource "azurerm_virtual_machine" "single-gateway-vm-instance" {
     managed_disk_type = module.common.storage_account_type
     disk_size_gb = module.common.disk_size
   }
+
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
 }

@@ -225,3 +225,9 @@ variable "admin_SSH_key" {
   description = "(Optional) TheUsed when the authentication_type is 'SSH Public Key'. The SSH public key for SSH authentication to the template instances."
   default = ""
 }
+
+variable "tags" {
+  description = "Assign tags by resource."
+  type = map(map(string))
+  default = {}
+}

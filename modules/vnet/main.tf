@@ -4,7 +4,7 @@ resource "azurerm_virtual_network" "vnet" {
   address_space = [var.address_space]
   resource_group_name = var.resource_group_name
   dns_servers = var.dns_servers
-  tags = var.tags
+  tags = merge(lookup(var.tags, "virtual-network", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_subnet" "subnet" {
@@ -55,6 +55,8 @@ resource "azurerm_route_table" "frontend" {
     next_hop_type = local.next_hop_type_allowed_values[3]
     next_hop_in_ip_address = join(".", [for i, v in split(".", element(split("/", azurerm_subnet.subnet[0].address_prefixes[0]), 0)) : i == 3 ? tostring(tonumber(v) + 4) : v])
   }
+
+  tags = merge(lookup(var.tags, "route-table", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_subnet_route_table_association" "frontend_association" {
@@ -74,6 +76,8 @@ resource "azurerm_route_table" "backend" {
     next_hop_type = local.next_hop_type_allowed_values[3]
     next_hop_in_ip_address = join(".", [for i, v in split(".", element(split("/", azurerm_subnet.subnet[1].address_prefixes[0]), 0)) : i == 3 ? tostring(tonumber(v) + 4) : v])
   }
+
+  tags = merge(lookup(var.tags, "route-table", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_subnet_route_table_association" "backend_association" {

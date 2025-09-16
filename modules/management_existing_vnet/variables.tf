@@ -226,3 +226,9 @@ variable "security_rules" {
   type    = list(any)
   default = []
 }
+
+variable "tags" {
+  description = "Assign tags by resource."
+  type = map(map(string))
+  default = {}
+}

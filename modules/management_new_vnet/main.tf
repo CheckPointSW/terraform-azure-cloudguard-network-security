@@ -19,6 +19,7 @@ module "common" {
   serial_console_password_hash = var.serial_console_password_hash
   maintenance_mode_password_hash = var.maintenance_mode_password_hash
   storage_account_additional_ips = var.storage_account_additional_ips
+  tags = merge(lookup(var.tags, "resource-group", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Networking **************************//
@@ -32,6 +33,7 @@ module "vnet" {
   subnet_prefixes = [var.subnet_prefix]
   subnet_names = ["${var.mgmt_name}-subnet"]
   nsg_id = var.nsg_id == "" ? module.network_security_group[0].network_security_group_id: var.nsg_id
+  tags = var.tags
 }
 
 module "network_security_group" {
@@ -138,6 +140,8 @@ module "network_security_group" {
       destination_address_prefix = "*"
     }
   ])
+
+  tags = merge(lookup(var.tags, "network-security-group", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_public_ip" "public-ip" {
@@ -151,6 +155,8 @@ resource "azurerm_public_ip" "public-ip" {
     lower(var.mgmt_name),
     "-",
     random_id.randomId.hex])
+
+  tags = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_network_interface_security_group_association" "security_group_association" {
@@ -174,6 +180,8 @@ resource "azurerm_network_interface" "nic" {
     private_ip_address = cidrhost(var.subnet_prefix, 4)
     public_ip_address_id = azurerm_public_ip.public-ip.id
   }
+
+  tags = merge(lookup(var.tags, "network-interface", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Storage accounts **************************//
@@ -202,6 +210,7 @@ resource "azurerm_storage_account" "vm-boot-diagnostics-storage" {
       days = "15"
     }
   }
+  tags = merge(lookup(var.tags, "storage-account", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Virtual Machines **************************//
@@ -221,6 +230,8 @@ resource "azurerm_image" "custom-image" {
     os_state = "Generalized"
     blob_uri = var.source_image_vhd_uri
   }
+
+  tags = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_virtual_machine" "mgmt-vm-instance" {
@@ -304,4 +315,6 @@ resource "azurerm_virtual_machine" "mgmt-vm-instance" {
     managed_disk_type = module.common.storage_account_type
     disk_size_gb = module.common.disk_size
   }
+
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
 }

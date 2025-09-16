@@ -2,6 +2,7 @@
 resource "azurerm_resource_group" "managed-app-rg" {
   name     = var.resource-group-name
   location = var.location
+  tags = merge(lookup(var.tags, "resource-group", {}), lookup(var.tags, "all", {}))
 }
 
 data "azurerm_virtual_hub" "vwan-hub" {
@@ -95,6 +96,7 @@ resource "azurerm_user_assigned_identity" "managed_app_identity" {
   location            = azurerm_resource_group.managed-app-rg.location
   name                = "managed_app_identity"
   resource_group_name = azurerm_resource_group.managed-app-rg.name
+  tags = merge(lookup(var.tags, "managed-identity", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_role_assignment" "reader" {
@@ -223,11 +225,18 @@ resource "azapi_resource" "managed-app" {
 			},
 			templateName = {
 			  value = "wan_terraform_registry"
+			},
+			tags = {
+				value = {
+					"Microsoft.Network/networkVirtualAppliances" = merge(lookup(var.tags, "network-virtual-appliance", {}), lookup(var.tags, "all", {}))
+				}
 			}
 		},
 		managedResourceGroupId = "/subscriptions/${var.subscription_id}/resourcegroups/${var.nva-rg-name}"
 	}
   }
+
+  tags = merge(lookup(var.tags, "managed-application", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Routing Intent **************************//
@@ -262,6 +271,8 @@ resource "azapi_resource" "routing_intent" {
       routingPolicies = local.routing-intent-policies
     }
 }
+
+  tags = merge(lookup(var.tags, "routing-intent", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azapi_update_resource" "update_routing_intent" {

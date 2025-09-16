@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 //********************** Basic Configuration **************************//
 module "common" {
   source = "../common"
@@ -19,6 +23,7 @@ module "common" {
   serial_console_password_hash = var.serial_console_password_hash
   maintenance_mode_password_hash = var.maintenance_mode_password_hash
   storage_account_additional_ips = var.storage_account_additional_ips
+  tags = merge(lookup(var.tags, "resource-group", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Networking **************************//
@@ -30,6 +35,7 @@ module "vnet" {
   nsg_id = var.nsg_id == "" ? module.network_security_group[0].network_security_group_id: var.nsg_id
   address_space = var.address_space
   subnet_prefixes = var.subnet_prefixes
+  tags = var.tags
 }
 
 module "network_security_group" {
@@ -39,6 +45,7 @@ module "network_security_group" {
     security_group_name = "${module.common.resource_group_name}_nsg"
     location = module.common.resource_group_location
     security_rules = var.security_rules
+    tags = merge(lookup(var.tags, "network-security-group", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Load Balancers **************************//
@@ -55,6 +62,7 @@ resource "azurerm_public_ip_prefix" "public_ip_prefix" {
   location = module.common.resource_group_location
   resource_group_name = module.common.resource_group_name
   prefix_length = 30
+  tags = merge(lookup(var.tags, "public-ip-prefix", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_public_ip" "public-ip-lb" {
@@ -66,6 +74,7 @@ resource "azurerm_public_ip" "public-ip-lb" {
   sku = var.sku
   domain_name_label = "${lower(var.vmss_name)}-${random_id.random_id.hex}"
   public_ip_prefix_id = var.use_public_ip_prefix ? (var.create_public_ip_prefix ? azurerm_public_ip_prefix.public_ip_prefix[0].id : var.existing_public_ip_prefix_id) : null
+  tags = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_lb" "frontend-lb" {
@@ -80,6 +89,8 @@ resource "azurerm_lb" "frontend-lb" {
     name = "${var.vmss_name}-app-1"
     public_ip_address_id = azurerm_public_ip.public-ip-lb[0].id
   }
+
+  tags = merge(lookup(var.tags, "load-balancer", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_lb_backend_address_pool" "frontend-lb-pool" {
@@ -100,6 +111,8 @@ resource "azurerm_lb" "backend-lb" {
     private_ip_address_allocation = module.vnet.allocation_method
     private_ip_address = cidrhost(module.vnet.subnet_prefixes[1], var.backend_lb_IP_address)
   }
+
+  tags = merge(lookup(var.tags, "load-balancer", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_lb_backend_address_pool" "backend-lb-pool" {
@@ -192,6 +205,8 @@ resource "azurerm_storage_account" "vm-boot-diagnostics-storage" {
       days = "15"
     }
    }
+
+  tags = merge(lookup(var.tags, "storage-account", {}), lookup(var.tags, "all", {}))
 }
 
 //********************** Virtual Machines **************************//
@@ -214,6 +229,8 @@ resource "azurerm_image" "custom-image" {
     os_state = "Generalized"
     blob_uri = var.source_image_vhd_uri
   }
+
+  tags = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
@@ -330,24 +347,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
      }
  }
 
-  tags = var.management_interface == "eth0"?{
-    x-chkp-management = var.management_name,
-    x-chkp-template = var.configuration_template_name,
-    x-chkp-ip-address = local.management_ip_address_type,
-    x-chkp-management-interface = local.management_interface_name,
-    x-chkp-management-address = var.management_IP,
-    x-chkp-topology = "eth0:external,eth1:internal",
-    x-chkp-anti-spoofing = "eth0:false,eth1:false",
-    x-chkp-srcImageUri = var.source_image_vhd_uri
-  }:{
-    x-chkp-management = var.management_name,
-    x-chkp-template = var.configuration_template_name,
-    x-chkp-ip-address = local.management_ip_address_type,
-    x-chkp-management-interface = local.management_interface_name,
-    x-chkp-topology = "eth0:external,eth1:internal",
-    x-chkp-anti-spoofing = "eth0:false,eth1:false",
-    x-chkp-srcImageUri = var.source_image_vhd_uri
-  }
+  tags = merge(lookup(var.tags, "virtual-machine-scale-set", {}), lookup(var.tags, "all", {}), local.vmss_tags)
 }
 
 resource "azurerm_monitor_autoscale_setting" "vmss_settings" {
@@ -414,6 +414,8 @@ resource "azurerm_monitor_autoscale_setting" "vmss_settings" {
       custom_emails = var.notification_email == "" ? [] : [var.notification_email]
     }
   }
+
+  tags = merge(lookup(var.tags, "autoscale-setting", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_role_assignment" "custom_metrics_role_assignment"{

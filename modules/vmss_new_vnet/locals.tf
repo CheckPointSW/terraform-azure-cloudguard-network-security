@@ -1,6 +1,6 @@
 locals {
   module_name = "vmss_terraform_registry"
-  module_version = "1.0.5"
+  module_version = "1.0.6"
 
   // Validate that the minimum number of VM instances is at least 0.
   // If not, return an error message.
@@ -17,4 +17,23 @@ locals {
   // Validate the number of VM instances against the minimum requirement.
   // If the number of instances is less than the minimum, return an error message.
   validate_number_of_vm_instances = local.number_of_vm_instances >= var.minimum_number_of_vm_instances? 0 : index("error: The number of VM instances must be at least ${var.minimum_number_of_vm_instances}.")
+
+  vmss_tags = var.management_interface == "eth0" ? {
+    x-chkp-management = var.management_name,
+    x-chkp-template = var.configuration_template_name,
+    x-chkp-ip-address = local.management_ip_address_type,
+    x-chkp-management-interface = local.management_interface_name,
+    x-chkp-management-address = var.management_IP,
+    x-chkp-topology = "eth0:external,eth1:internal",
+    x-chkp-anti-spoofing = "eth0:false,eth1:false",
+    x-chkp-srcImageUri = var.source_image_vhd_uri
+  } : {
+    x-chkp-management = var.management_name,
+    x-chkp-template = var.configuration_template_name,
+    x-chkp-ip-address = local.management_ip_address_type,
+    x-chkp-management-interface = local.management_interface_name,
+    x-chkp-topology = "eth0:external,eth1:internal",
+    x-chkp-anti-spoofing = "eth0:false,eth1:false",
+    x-chkp-srcImageUri = var.source_image_vhd_uri
+  }
 }

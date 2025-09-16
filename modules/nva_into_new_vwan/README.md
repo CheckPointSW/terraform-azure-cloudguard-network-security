@@ -24,7 +24,7 @@ provider "azurerm" {
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/azure//modules/nva_into_new_vwan"
-    version = "1.0.5"
+    version = "1.0.6"
 
     authentication_method           = "Service Principal"
     client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -100,3 +100,4 @@ module "example_module" {
 | **smart1-cloud-token-e** | Smart-1 Cloud token to connect automatically ***NVA instance e*** to Check Point's Security Management as a Service.<br/><br/>Follow these instructions to quickly connect this member to Smart-1 Cloud - [SK180501](https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk180501) | string | A valid token copied from the Connect Gateway screen in Smart-1 Cloud portal. |
 | **existing-public-ip** | Existing public IP reosurce to attach to the newly deployed NVA | string | A resource ID of the public IP resource. |
 | **new-public-ip** | Deploy a new public IP resource as part of the managed app and attach to the NVA | string | yes;<br/>no. |
+| **tags** | Tags can be associated either globally across all resources or scoped to specific resource types. For example, a global tag can be defined as: {"all": {"example": "example"}}.<br/>Supported resource types for tag assignment include:<br>`all` (Applies tags universally to all resource instances)<br/>`resource-group` (Applies tags to managed application resource group)<br/>`virtual-wan`<br/>`virtual-hub`<br/>`managed-identity` (Applies tags to the managed identity of the managed application)<br/>`managed-application`<br/>`routing-intent`<br/>`network-virtual-appliance`<br/>**Important:** When identical tag keys are defined both globally under `all` and within a specific resource scope, the tag value specified under `all` overrides the resource-specific tag. | map(map(string)) | {} |

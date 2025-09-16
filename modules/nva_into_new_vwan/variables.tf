@@ -1,6 +1,6 @@
 variable "authentication_method" {
   description = "Azure authentication method"
-  type = string
+  type        = string
   validation {
     condition     = contains(["Azure CLI", "Service Principal"], var.authentication_method)
     error_message = "Valid values for authentication_method are 'Azure CLI','Service Principal'"
@@ -9,22 +9,22 @@ variable "authentication_method" {
 
 variable "subscription_id" {
   description = "Subscription ID"
-  type = string
+  type        = string
 }
 
 variable "tenant_id" {
   description = "Tenant ID"
-  type = string
+  type        = string
 }
 
 variable "client_id" {
   description = "Application ID(Client ID)"
-  type = string
+  type        = string
 }
 
 variable "client_secret" {
   description = "A secret string that the application uses to prove its identity when requesting a token. Also can be referred to as application password."
-  type = string
+  type        = string
 }
 
 variable "resource-group-name" {
@@ -73,10 +73,10 @@ variable "nva-name" {
 
 variable "os-version" {
   description = "GAIA OS version"
-  type = string
-  default = "R82"
+  type        = string
+  default     = "R82"
   validation {
-    condition = contains(["R8110", "R8120", "R82"], var.os-version)
+    condition     = contains(["R8110", "R8120", "R82"], var.os-version)
     error_message = "Allowed values for os-version are 'R8110', 'R8120', 'R82'"
   }
 }
@@ -118,7 +118,7 @@ variable "sic-key" {
   default   = ""
   sensitive = true
   validation {
-    condition = can(regex("^[a-z0-9A-Z]{8,30}$", var.sic-key))
+    condition     = can(regex("^[a-z0-9A-Z]{8,30}$", var.sic-key))
     error_message = "Only alphanumeric characters are allowed, and the value must be 8-30 characters long."
   }
 }
@@ -132,7 +132,7 @@ variable "bgp-asn" {
   type    = string
   default = "64512"
   validation {
-    condition = tonumber(var.bgp-asn) >= 64512 && tonumber(var.bgp-asn) <= 65534 && !contains([65515, 65520], tonumber(var.bgp-asn))
+    condition     = tonumber(var.bgp-asn) >= 64512 && tonumber(var.bgp-asn) <= 65534 && !contains([65515, 65520], tonumber(var.bgp-asn))
     error_message = "Only numbers between 64512 to 65534 are allowed excluding 65515, 65520."
   }
 }
@@ -188,44 +188,28 @@ variable "smart1-cloud-token-e" {
 }
 
 variable "existing-public-ip" {
-  type = string
-  default = ""  
+  type    = string
+  default = ""
 }
 
 variable "new-public-ip" {
-  type = string
+  type    = string
   default = "no"
-    validation {
+  validation {
     condition     = contains(["yes", "no"], var.new-public-ip)
     error_message = "Valid options are string('yes' or 'no')"
   }
 }
 
-locals{
+locals {
   # Validate that new-public-ip is false when existing-public-ip is used
-  is_both_params_used = length(var.existing-public-ip) > 0 && var.new-public-ip == "yes"
+  is_both_params_used     = length(var.existing-public-ip) > 0 && var.new-public-ip == "yes"
   validation_message_both = "Only one parameter of existing-public-ip or new-public-ip can be used"
-  _ = regex("^$", (!local.is_both_params_used ? "" : local.validation_message_both))
+  _                       = regex("^$", (!local.is_both_params_used ? "" : local.validation_message_both))
 }
 
-variable "plan_product" {
-  description = "Use the following plan when deploying with terraform: cp-vwan-managed-app"
-  type    = string
-  default = "cp-vwan-managed-app"
-}
-
-variable "plan_version" {
-  description = "Use the latest version of the managed application (e.g., 1.0.23) for best results. Full version list: https://support.checkpoint.com/results/sk/sk132192"
-  type    = string
-  default = "1.0.23"
-}
-
-variable "custom_license_type" {
-  description = "License type when using staged image."
-  type        = string
-  default     = ""
-  validation {
-    condition     = contains(["", "ngtp", "ngtx", "premium"], var.custom_license_type)
-    error_message = "Valid options are 'ngtp', 'ngtx', or 'premium' or empty."
-  }
+variable "tags" {
+  description = "Assign tags by resource."
+  type        = map(map(string))
+  default     = {}
 }

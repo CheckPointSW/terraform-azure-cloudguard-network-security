@@ -26,7 +26,7 @@ provider "azurerm" {
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/azure//modules/management_new_vnet"
-    version = "1.0.5"
+    version = "1.0.6"
 
     source_image_vhd_uri            = "noCustomUri"
     resource_group_name             = "checkpoint-mgmt-terraform"
@@ -87,3 +87,4 @@ module "example_module" {
 | **security_rules**                | SSecurity rules for the Network Security                                                                                                                                                                                     | list(any)      | A security rule is composed of: {name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description}<br />**Default:** []                                                                                                                                                                               |
 | **admin_SSH_key**                 | The SSH public key for SSH connections to the instance. Used when the authentication_type is 'SSH Public Key'                                                                                                                                        | string         | **Default:** ""                          
 | **is_blink**                    | Define if blink image is used for deployment | boolean      | true;<br />false;<br />**Default:** true  |
+| **tags** | Tags can be associated either globally across all resources or scoped to specific resource types. For example, a global tag can be defined as: {"all": {"example": "example"}}.<br/>Supported resource types for tag assignment include:<br>`all` (Applies tags universally to all resource instances)<br/>`resource-group`<br/>`virtual-network`<br/>`network-security-group`<br/>`network-interface`<br/>`public-ip`<br/>`route-table`<br/>`storage-account`<br/>`virtual-machine`<br/>`custom-image`<br/>**Important:** When identical tag keys are defined both globally under `all` and within a specific resource scope, the tag value specified under `all` overrides the resource-specific tag. | map(map(string)) | {} |
