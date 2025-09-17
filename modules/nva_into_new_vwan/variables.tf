@@ -214,17 +214,16 @@ variable "tags" {
   default     = {}
 }
 
-
 variable "plan_product" {
   description = "Use the following plan when deploying with terraform: cp-vwan-managed-app"
-  type    = string
-  default = "cp-vwan-managed-app"
+  type        = string
+  default     = "cp-vwan-managed-app"
 }
 
 variable "plan_version" {
   description = "Use the latest version of the managed application (e.g., 1.0.23) for best results. Full version list: https://support.checkpoint.com/results/sk/sk132192"
-  type    = string
-  default = "1.0.23"
+  type        = string
+  default     = "1.0.23"
 }
 
 variable "custom_license_type" {
