@@ -289,7 +289,7 @@ variable "frontend_port" {
 variable "backend_port" {
   description = "Port that will be exposed to the external Load Balance"
   type = string
-  default = "8081"
+  default = "80"
 }
 
 variable "frontend_load_distribution" {
