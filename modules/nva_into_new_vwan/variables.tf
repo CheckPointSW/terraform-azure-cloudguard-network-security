@@ -128,6 +128,16 @@ variable "admin_SSH_key" {
   default = ""
 }
 
+variable "serial_console_password_hash" {
+  description = "Optional parameter, used to enable serial console connection. In R81.10 and below, the serial console password is also used as the maintenance mode password."
+  type = string
+}
+
+variable "maintenance_mode_password_hash" {
+  description = "Maintenance mode password hash, relevant only for R81.20 and higher versions."
+  type = string
+}
+
 variable "bgp-asn" {
   type    = string
   default = "64512"

@@ -197,6 +197,12 @@ resource "azapi_resource" "managed-app" {
         sshPublicKey = {
           value = var.admin_SSH_key
         },
+        MaintenanceModePasswordHash = {
+          value = var.maintenance_mode_password_hash
+        },
+        SerialConsolePasswordHash = {
+          value = var.serial_console_password_hash
+        },
         BGP = {
           value = var.bgp-asn
         },
