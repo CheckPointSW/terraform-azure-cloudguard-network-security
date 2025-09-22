@@ -327,3 +327,15 @@ variable "tags" {
   type = map(map(string))
   default = {}
 }
+
+variable "vips_names" {
+  description = "Names to be used for the VIPs"
+  type = list(string)
+  default = []
+
+  # More than 10 VIPs may result in not enough available IPs available in IpPrefix
+  validation {
+    condition = length(var.vips_names) < 10
+    error_message = "The number of VIPs must be less than 10."
+  }
+}

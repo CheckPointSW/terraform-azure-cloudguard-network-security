@@ -35,7 +35,7 @@ resource "azurerm_public_ip_prefix" "public_ip_prefix" {
   name = "${module.common.resource_group_name}-ipprefix"
   location = module.common.resource_group_location
   resource_group_name = module.common.resource_group_name
-  prefix_length = 30
+  prefix_length = length(var.vips_names) > 4 ? 28 : length(var.vips_names) > 0 ? 29 : 30
   tags = merge(lookup(var.tags, "public-ip-prefix", {}), lookup(var.tags, "all", {}))
 }
 
@@ -74,10 +74,24 @@ resource "azurerm_public_ip" "cluster-vip" {
   tags = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
 }
 
+resource "azurerm_public_ip" "vips" {
+  count = length(var.vips_names)
+  name = var.vips_names[count.index]
+  location = module.common.resource_group_location
+  resource_group_name = module.common.resource_group_name
+  allocation_method = var.vnet_allocation_method
+  sku = var.sku
+  domain_name_label = "${lower(var.vips_names[count.index])}-${count.index}-vip-${random_id.random_id.hex}"
+  public_ip_prefix_id = var.use_public_ip_prefix ? (var.create_public_ip_prefix ? azurerm_public_ip_prefix.public_ip_prefix[0].id : var.existing_public_ip_prefix_id) : null
+  tags = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
+}
+
 resource "azurerm_network_interface" "nic_vip" {
   depends_on = [
     azurerm_public_ip.cluster-vip,
-    azurerm_public_ip.public-ip]
+    azurerm_public_ip.public-ip,
+    azurerm_public_ip.vips,
+  ]
   name = "${var.cluster_name}1-eth0"
   location = module.common.resource_group_location
   resource_group_name = module.common.resource_group_name
@@ -100,6 +114,19 @@ resource "azurerm_network_interface" "nic_vip" {
     private_ip_address = cidrhost(data.azurerm_subnet.frontend.address_prefixes[0], var.frontend_IP_addresses[2])
     public_ip_address_id = azurerm_public_ip.cluster-vip.id
   }
+
+  dynamic "ip_configuration" {
+    for_each = var.vips_names
+    content {
+      name = "cluster-vip-${index(var.vips_names, ip_configuration.value) + 1}"
+      subnet_id = data.azurerm_subnet.frontend.id
+      primary = false
+      private_ip_address_allocation = var.vnet_allocation_method
+      private_ip_address = cidrhost(data.azurerm_subnet.frontend.address_prefixes[0], 7 + index(var.vips_names, ip_configuration.value) + 1)
+      public_ip_address_id = azurerm_public_ip.vips[index(var.vips_names, ip_configuration.value)].id
+    }
+  }
+
   lifecycle {
     ignore_changes = [
       # Ignore changes to ip_configuration when Re-applying, e.g. because a cluster failover and associating the cluster- vip with the other member.
