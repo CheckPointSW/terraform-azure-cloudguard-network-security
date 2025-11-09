@@ -120,11 +120,13 @@ variable "admin_SSH_key" {
 variable "serial_console_password_hash" {
   description = "Optional parameter, used to enable serial console connection. In R81.10 and below, the serial console password is also used as the maintenance mode password."
   type = string
+  default = ""
 }
 
 variable "maintenance_mode_password_hash" {
   description = "Maintenance mode password hash, relevant only for R81.20 and higher versions"
   type = string
+  default = ""
 }
 
 variable "bgp-asn" {
@@ -220,9 +222,9 @@ variable "plan_product" {
 }
 
 variable "plan_version" {
-  description = "Use the latest version of the managed application (e.g., 1.0.23) for best results. Full version list: https://support.checkpoint.com/results/sk/sk132192"
+  description = "Use the latest version of the managed application (e.g., 1.0.24) for best results. Full version list: https://support.checkpoint.com/results/sk/sk132192"
   type        = string
-  default     = "1.0.23"
+  default     = "1.0.24"
 }
 
 variable "custom_license_type" {

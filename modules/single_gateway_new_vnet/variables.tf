@@ -39,11 +39,13 @@ variable "smart_1_cloud_token" {
 variable "serial_console_password_hash" {
   description = "Optional parameter, used to enable serial console connection in case of SSH key as authentication type"
   type = string
+  default = ""
 }
 
 variable "maintenance_mode_password_hash" {
   description = "Maintenance mode password hash, relevant only for R81.20 and higher versions"
   type = string
+  default = ""
 }
 
 variable "authentication_type" {
