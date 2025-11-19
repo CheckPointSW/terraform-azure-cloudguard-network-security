@@ -23,7 +23,7 @@ provider "azurerm" {
 module "example_module" {
 
         source  = "CheckPointSW/cloudguard-network-security/azure//modules/high_availability_existing_vnet"
-        version = "1.0.6"
+        version = "1.0.8"
 
         tenant_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         source_image_vhd_uri            = "noCustomUri"

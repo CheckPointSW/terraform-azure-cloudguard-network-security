@@ -24,7 +24,7 @@ provider "azurerm" {
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/azure//modules/nva_into_new_vwan"
-    version = "1.0.6"
+    version = "1.0.8"
 
     authentication_method           = "Service Principal"
     client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
