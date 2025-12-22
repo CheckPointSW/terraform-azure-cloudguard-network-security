@@ -1,6 +1,6 @@
 locals {
   module_name    = "vmss_terraform_registry"
-  module_version = "1.0.7"
+  module_version = "1.0.9"
 
   // Validate that the minimum number of VM instances is at least 0.
   // If not, return an error message.

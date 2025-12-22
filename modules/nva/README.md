@@ -22,7 +22,7 @@ provider "azurerm" {
 
 module "example_module" {
   source  = "CheckPointSW/cloudguard-network-security/azure//modules/nva"
-  version = "1.0.6"
+  version = "1.0.9"
 
   # Authentication Variables
   authentication_method = "Service Principal"
