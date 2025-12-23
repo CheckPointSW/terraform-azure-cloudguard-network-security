@@ -78,18 +78,6 @@ output "vm_os_version" {
   value = var.vm_os_version
 }
 
-output "storage_account_type" {
-  value = var.storage_account_type
-}
-
-output "storage_account_tier" {
-  value = var.storage_account_tier
-}
-
-output "account_replication_type" {
-  value = var.account_replication_type
-}
-
 output "disk_size" {
   value = var.disk_size
 }
@@ -118,13 +106,6 @@ output "tags" {
   value = var.tags
 }
 
-output "boot_diagnostics" {
-  value = var.boot_diagnostics
-}
-
-output "storage_account_ip_rules" {
-  value = local.storage_account_ip_rules
-}
 output "role_definition" {
   value = var.role_definition
 }
