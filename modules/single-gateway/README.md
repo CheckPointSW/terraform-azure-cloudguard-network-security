@@ -35,8 +35,8 @@ module "example_module" {
   subscription_id                 = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
   # Basic Configurations Variables
-  resource_group_name = "checkpoint-mds-rg-terraform"
-  single_gateway_name = "checkpoint-mds-terraform"
+  resource_group_name = "checkpoint-single-rg-terraform"
+  single_gateway_name = "checkpoint-single-terraform"
   location            = "eastus"
   tags                = {}
 
