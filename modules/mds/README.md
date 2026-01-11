@@ -135,9 +135,9 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **installation_type** | Enables to select installation type- gateway/standalone | string | mds-primary;<br/>mds-secondary;<br/>mds-logserver. |
 | **vm_size** | Specifies the size of Virtual Machine. | string | A list of valid VM sizes (e.g., "Standard_D4ds_v5", "Standard_D8ds_v5", etc). |
 | **disk_size** | Storage data disk size size (GB). | string | A number in the range 100 - 3995 (GB). |
-| **os_version** | GAIA OS version. | string | "R8110";<br/>"R8120";. |
+| **os_version** | GAIA OS version. | string | "R8110";<br/>"R8120";<br/>"R82";<br/>"R8210". |
 | **vm_os_sku** | A sku of the image to be deployed. | string | "mgmt-byol" - BYOL license;<br/>"mgmt-25" - PAYG. |
-| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br/>"check-point-cg-r8120";<br/>"check-point-cg-r82";. |
+| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br/>"check-point-cg-r8120";<br/>"check-point-cg-r82";<br/>"check-point-cg-r8210". |
 | **allow_upload_download** | Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point. | boolean | true;<br/>false. |
 | **admin_shell** | Enables to select different admin shells. | string | /etc/cli.sh;<br/>/bin/bash;<br/>/bin/csh;<br/>/bin/tcsh.<br/>**Default:** "/etc/cli.sh" |
 | **bootstrap_script** | An optional script to run on the initial boot. | string | Bootstrap script example:<br/>"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt".<br/>The script will create bootstrap.txt file in the /home/admin/ and add 'hello word' string into it.<br/>**Default:** "" |

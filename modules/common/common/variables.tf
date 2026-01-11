@@ -108,9 +108,10 @@ variable "os_version" {
     condition = contains([
       "R8110",
       "R8120",
-      "R82"
+      "R82",
+      "R8210"
     ], var.os_version)
-    error_message = "Variable [os_version] must be one of the following: 'R8110', 'R8120', 'R82'."
+    error_message = "Variable [os_version] must be one of the following: 'R8110', 'R8120', 'R82', 'R8210'."
   }
 }
 
@@ -192,9 +193,10 @@ variable "vm_os_offer" {
     condition = contains([
       "check-point-cg-r8110",
       "check-point-cg-r8120",
-      "check-point-cg-r82"
+      "check-point-cg-r82",
+      "check-point-cg-r8210",
     ], var.vm_os_offer)
-    error_message = "Variable [vm_os_offer] must be one of the following: 'check-point-cg-r8110', 'check-point-cg-r8120', 'check-point-cg-r82'."
+    error_message = "Variable [vm_os_offer] must be one of the following: 'check-point-cg-r8110', 'check-point-cg-r8120', 'check-point-cg-r82', 'check-point-cg-r8210'."
   }
 }
 

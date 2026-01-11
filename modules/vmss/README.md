@@ -183,9 +183,9 @@ For more information, refer to the official - [Checkout the Azure Terraform docu
 | **maintenance_mode_password_hash** | Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | N/A |
 | **vm_size** | Specifies the size of Virtual Machine. | string | A list of valid VM sizes (e.g., "Standard_D4ds_v5", "Standard_D8ds_v5", etc). |
 | **disk_size** | Storage data disk size (GB) must be 100 for versions R81.20 and below. | string | A number in the range 100 - 3995 (GB).<br />**Default:** 100 |
-| **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />|
+| **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210";<br />|
 | **vm_os_sku** | A SKU of the image to be deployed. | string | "sg-byol" - BYOL license;<br />"sg-ngtp" - NGTP PAYG license;<br />"sg-ngtx" - NGTX PAYG license; |
-| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82"; |
+| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210"; |
 | **allow_upload_download** | Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point. | boolean | true;<br />false; |
 | **admin_shell** | Enables selecting different admin shells. | string | /etc/cli.sh;<br />/bin/bash;<br />/bin/csh;<br />/bin/tcsh;<br />**Default:** "/etc/cli.sh" |
 | **bootstrap_script** | An optional script to run on the initial boot. | string | Bootstrap script example:<br />"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt" |
