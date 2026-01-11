@@ -25,7 +25,7 @@ provider "azurerm" {
 
 module "example_module" {
   source  = "CheckPointSW/cloudguard-network-security/azure//modules/mds"
-  version = "1.0.9"
+  version = "~> 1.0"
 
   # Authentication Variables
   client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
