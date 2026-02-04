@@ -24,6 +24,12 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "resource_group_create" {
+  description = "Define if Azure Resource Group should be created"
+  type        = bool
+  default     = true
+}
+
 variable "single_gateway_name" {
   description = "Single Gateway name."
   type        = string
