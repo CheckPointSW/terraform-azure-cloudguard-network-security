@@ -73,6 +73,44 @@ variable "subnet_prefixes" {
   }
 }
 
+variable "enable_ipv6" {
+  description = "Enable IPv6 dual-stack networking support."
+  type        = bool
+  default     = false
+}
+
+variable "ipv6_address_space" {
+  description = "The IPv6 address prefixes of the virtual network."
+  type        = string
+  default     = "ace:cab:deca::/48"
+
+  validation {
+    condition     = var.ipv6_address_space != "" ? can(regex(local.regex_valid_ipv6_vnet_cidr, var.ipv6_address_space)) : true
+    error_message = "Variable [ipv6_address_space] must be a valid IPv6 address in CIDR notation with prefix length between /48 and /64."
+  }
+}
+
+variable "subnet_ipv6_prefixes" {
+  description = "The IPv6 address prefixes to be used for subnets"
+  type        = list(string)
+  default     = ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]
+
+  validation {
+    condition     = !var.enable_ipv6 || (local.create_new_vnet ? length(var.subnet_names) == length(var.subnet_ipv6_prefixes) : true)
+    error_message = "When IPv6 is enabled, the length of [subnet_names] and [subnet_ipv6_prefixes] must be the same."
+  }
+
+  validation {
+    condition     = !var.enable_ipv6 || (local.create_new_vnet ? length(var.subnet_prefixes) == length(var.subnet_ipv6_prefixes) : true)
+    error_message = "When IPv6 is enabled, [subnet_prefixes] and [subnet_ipv6_prefixes] must have the same length."
+  }
+
+  validation {
+    condition     = !var.enable_ipv6 || (local.create_new_vnet ? alltrue([for prefix in var.subnet_ipv6_prefixes : can(regex(local.regex_valid_ipv6_subnet_cidr, prefix))]) : true)
+    error_message = "Azure requires all subnet IPv6 prefixes to be exactly /64 in size."
+  }
+}
+
 variable "nsg_id" {
   description = "Network security group to be associated with a Virtual Network and subnets"
   type        = string

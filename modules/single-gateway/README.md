@@ -1,13 +1,14 @@
 # Check Point CloudGuard Single Gateway Module
 
-This Terraform module deploys Check Point CloudGuard Network Security Single Gateway solution in azure.
+Terraform module which deploys a Check Point CloudGuard Network Security Single Gateway solution in Azure with IPv4 and IPv6 dual-stack support.
+
 As part of the deployment the following resources are created:
 - Resource group
 - Virtual network
 - Network security group
 - System assigned identity
 - Storage account
-
+- Standard Load Balancer (when IPv6 is enabled)
 
 This solution uses the following submodules:
 - common - used for creating a resource group and defining common variables.
@@ -18,7 +19,12 @@ This solution uses the following submodules:
 ## Usage
 Follow best practices for using CGNS modules on [the root page](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest).
 
-**Example:**
+### Example Deployments
+
+<details>
+<summary><b>IPv4 Only Deployment Example</b></summary>
+<br>
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -77,7 +83,120 @@ module "example_module" {
   storage_account_additional_ips  = []
 }
 ```
-  
+
+</details>
+
+<details>
+<summary><b>IPv6 Dual-Stack Deployment Example</b></summary>
+<br>
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+module "example_module" {
+  source  = "CheckPointSW/cloudguard-network-security/azure//modules/single-gateway"
+  version = "1.0.6"
+
+  # Authentication Variables
+  client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  client_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  tenant_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  subscription_id                 = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+  # Basic Configurations Variables
+  resource_group_name = "checkpoint-single-rg-terraform"
+  single_gateway_name = "checkpoint-single-terraform"
+  location            = "eastus"
+  tags                = {}
+
+  # Virtual Machine Instances Variables
+  source_image_vhd_uri           = "noCustomUri"
+  authentication_type            = "Password"
+  admin_password                 = "xxxxxxxxxxxx"
+  sic_key                        = "xxxxxxxxxxxx"
+  serial_console_password_hash   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  maintenance_mode_password_hash = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  installation_type              = "gateway"
+  vm_size                        = "Standard_D4ds_v5"
+  disk_size                      = "110"
+  os_version                     = "R82"
+  vm_os_sku                      = "sg-byol"
+  vm_os_offer                    = "check-point-cg-r82"
+  allow_upload_download          = true
+  admin_shell                    = "/etc/cli.sh"
+  bootstrap_script               = "touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt"
+  enable_custom_metrics          = true
+  zone                           = ""
+
+  # Smart-1 Cloud Variables
+  smart_1_cloud_token = "xxxxxxxxxxxx"
+
+  # Management Variables
+  management_GUI_client_network = "0.0.0.0/0"
+
+  # Networking Variables - IPv4
+  vnet_name                       = "checkpoint-single-gw-vnet"
+  frontend_subnet_name            = "Frontend"
+  backend_subnet_name             = "Backend"
+  address_space                   = "10.0.0.0/16"
+  subnet_prefixes                 = ["10.0.0.0/24", "10.0.1.0/24"]
+
+  # IPv6 Dual-Stack Configuration
+  enable_ipv6              = true
+  vnet_ipv6_address_space  = "ace:cab:deca::/48"
+  subnet_ipv6_prefixes     = ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]
+
+  nsg_id                          = ""
+  storage_account_deployment_mode = "New"
+  add_storage_account_ip_rules    = false
+  storage_account_additional_ips  = []
+}
+```
+
+</details>
+
+## IPv6 Dual-Stack Support
+This module supports IPv6 dual-stack networking alongside the default IPv4 configuration. When enabled, the deployment automatically creates additional IPv6 resources including a Standard Load Balancer with IPv6 public IP.
+
+**To enable IPv6 dual-stack:**
+1. Set `enable_ipv6 = true` in your module configuration
+2. Configure the IPv6 address space for your Virtual Network:
+   ```hcl
+   vnet_ipv6_address_space = "ace:cab:deca::/48"
+   ```
+3. Configure IPv6 subnet prefixes (one /64 prefix per subnet):
+   ```hcl
+   subnet_ipv6_prefixes = ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]
+   ```
+4. Configure Network Security Group rules to allow IPv6 traffic using the `security_rules` variable:
+   ```hcl
+   security_rules = [
+     {
+       name                       = "AllowHTTPv6"
+       priority                   = "110"
+       direction                  = "Inbound"
+       access                     = "Allow"
+       protocol                   = "Tcp"
+       source_port_ranges         = "*"
+       destination_port_ranges    = "80"
+       source_address_prefix      = "::/0"
+       destination_address_prefix = "::/0"
+       description                = "Allow HTTP IPv6"
+     }
+   ]
+   ```
+**IPv6 Requirements:**
+- **Subnet IPv6 Prefixes**: Must be exactly `/64` prefixes within the VNet address space
+  - Frontend subnet: First `/64` prefix (e.g., `ace:cab:deca:deed::/64`)
+  - Backend subnet: Second `/64` prefix (e.g., `ace:cab:deca:deee::/64`)
+- **Standard Load Balancer**: Required for IPv6 traffic management (automatically created with Standard SKU public IP)
+- **Route Tables**: IPv6 routes must use `next_hop_type = "None"` to enforce all traffic through the Load Balancer
+
+**Important Notes:**
+- Gateway VM receives private IPv6 addresses only; public IPv6 is assigned to the Load Balancer
+- All IPv6 internet traffic flows through the Load Balancer (inbound and outbound)
 ## Conditional creation
 ### Virtual Network:
 You can specify wether you want to create a new Virtual Network or use an existing one:
@@ -147,12 +266,15 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **zone** | Optional parameter, specifies the Availability Zone the solution should be deployed in. | string | "1"<br />**Default:** "" |
 | **smart_1_cloud_token** | Smart-1 Cloud token to connect automatically ***Gateway*** to Check Point's Security Management as a Service. Follow these instructions to quickly connect this member to Smart-1 Cloud. | string | A valid token copied from the Connect Gateway screen in Smart-1 Cloud portal. |
 | **management_GUI_client_network** | Allowed GUI clients - GUI clients network CIDR | string | N/A |
-| **vnet_name** | The name of virtual network that will be created. | string | The name must beginn with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. |
+| **vnet_name** | The name of virtual network that will be created. | string | The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. |
 | **existing_vnet_resource_group** | The name of the resource group where the Virtual Network is located. Required when using an existing Virtual Network. | string | **Default:** "" |
 | **frontend_subnet_name** | The Virtual Network subnet name for the frontend interface. | string | N/A |
 | **backend_subnet_name** | The Virtual Network subnet name for the backend interface. | string | N/A |
-| **address_space** | The address prefixes of the virtual network. | string | Valid CIDR block<br />**Default:** "10.12.0.0/16" |
-| **subnet_prefixes** | Address prefix to be used for network subnets. | list(string) | The subnets need to be contained within the address space for this virtual network (defined by the address_space variable).<br />**Default:** ["10.0.0.0/24", "10.0.1.0/24"] |
+| **address_space** | The address prefixes of the virtual network. | string | Valid CIDR block<br />**Default:** "10.0.0.0/16" |
+| **subnet_prefixes** | Address prefix to be used for network subnets. | list(string) | The subnets need to be contained within the address space for this virtual network (defined by the address_space variable).<br />**Important:** Index [0] is used for the **frontend subnet**, index [1] is used for the **backend subnet**.<br />**Default:** ["10.0.0.0/24", "10.0.1.0/24"] |
+| **enable_ipv6** | Enable IPv6 dual-stack networking. When enabled, creates additional IPv6 resources including Standard Load Balancer, IPv6 public IP, and dual-stack network interfaces. | bool | true;<br/>false;<br/>**Default:** false |
+| **vnet_ipv6_address_space** | The IPv6 address space for the virtual network. Required when enable_ipv6 is true. | string | Valid IPv6 CIDR block<br/>**Default:** "ace:cab:deca::/48" |
+| **subnet_ipv6_prefixes** | IPv6 address prefixes to be used for network subnets. Required when enable_ipv6 is true. Must contain one /64 prefix for each subnet. | list(string) | List of valid IPv6 CIDR blocks (must be /64 prefixes within the VNet IPv6 address space)<br />**Important:** Index [0] is used for the **frontend subnet**, index [1] is used for the **backend subnet**.<br/>**Default:** ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"] |
 | **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a **Default** NSG will be created. | string | Existing NSG resource ID<br />**Default:** "" |
 | **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None;<br/> **Default:** New |
 | **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | boolean | true;<br />false;<br />**Default:** false |

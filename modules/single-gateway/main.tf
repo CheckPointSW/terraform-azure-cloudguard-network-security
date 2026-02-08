@@ -49,6 +49,9 @@ module "vnet" {
   subnet_prefixes              = var.subnet_prefixes
   subnet_names                 = [var.frontend_subnet_name, var.backend_subnet_name]
   nsg_id                       = module.network_security_group.id
+  enable_ipv6                  = var.enable_ipv6
+  ipv6_address_space           = var.vnet_ipv6_address_space
+  subnet_ipv6_prefixes         = var.subnet_ipv6_prefixes
   tags                         = var.tags
 }
 
@@ -69,6 +72,80 @@ resource "azurerm_public_ip" "public_ip" {
   idle_timeout_in_minutes = 30
   domain_name_label       = "${lower(var.single_gateway_name)}-${random_id.public_ip_suffix.hex}"
   tags                    = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
+}
+
+resource "azurerm_public_ip" "public_ip_v6" {
+  count                   = var.enable_ipv6 ? 1 : 0
+  name                    = "lb-public-ipv6"
+  location                = module.common.resource_group_location
+  resource_group_name     = module.common.resource_group_name
+  allocation_method       = "Static"
+  sku                     = "Standard"
+  ip_version              = "IPv6"
+  idle_timeout_in_minutes = 30
+  domain_name_label       = "${lower(var.single_gateway_name)}-${random_id.public_ip_suffix.hex}"
+  tags                    = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
+}
+
+resource "azurerm_lb" "lb_v6" {
+  count               = var.enable_ipv6 ? 1 : 0
+  name                = "loadBalancer"
+  location            = module.common.resource_group_location
+  resource_group_name = module.common.resource_group_name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "LB-v6"
+    public_ip_address_id = azurerm_public_ip.public_ip_v6[0].id
+  }
+
+  tags = merge(lookup(var.tags, "load-balancer", {}), lookup(var.tags, "all", {}))
+}
+
+resource "azurerm_lb_backend_address_pool" "backend_pool_v6" {
+  count           = var.enable_ipv6 ? 1 : 0
+  name            = "LBBAP-v6"
+  loadbalancer_id = azurerm_lb.lb_v6[0].id
+}
+
+resource "azurerm_lb_probe" "lb_probe_v6" {
+  count           = var.enable_ipv6 ? 1 : 0
+  name            = "lb-probe"
+  loadbalancer_id = azurerm_lb.lb_v6[0].id
+  protocol        = "Tcp"
+  port            = 443
+  interval_in_seconds = 5
+  number_of_probes    = 2
+}
+
+resource "azurerm_lb_rule" "lb_rule_http_v6" {
+  count                          = var.enable_ipv6 ? 1 : 0
+  name                           = "lb-http-v6"
+  loadbalancer_id                = azurerm_lb.lb_v6[0].id
+  protocol                       = "Tcp"
+  frontend_port                  = 80
+  backend_port                   = 80
+  frontend_ip_configuration_name = "LB-v6"
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool_v6[0].id]
+  probe_id                       = azurerm_lb_probe.lb_probe_v6[0].id
+  enable_floating_ip             = true
+  enable_tcp_reset               = true
+  idle_timeout_in_minutes        = 15
+  disable_outbound_snat          = true
+}
+
+resource "azurerm_lb_outbound_rule" "outbound_v6" {
+  count                   = var.enable_ipv6 ? 1 : 0
+  name                    = "ob-v6"
+  loadbalancer_id         = azurerm_lb.lb_v6[0].id
+  protocol                = "All"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.backend_pool_v6[0].id
+  allocated_outbound_ports = 8192
+  idle_timeout_in_minutes  = 4
+
+  frontend_ip_configuration {
+    name = "LB-v6"
+  }
 }
 
 resource "azurerm_network_interface_security_group_association" "security_group_association" {
@@ -98,9 +175,28 @@ resource "azurerm_network_interface" "nic" {
     private_ip_address_allocation = module.vnet.allocation_method
     private_ip_address            = cidrhost(module.vnet.subnet_prefixes[0], 4)
     public_ip_address_id          = azurerm_public_ip.public_ip.id
+    primary                       = true
+  }
+
+  dynamic "ip_configuration" {
+    for_each = var.enable_ipv6 ? [1] : []
+    content {
+      name                          = "ipconfig1-v6"
+      subnet_id                     = module.vnet.subnets[0]
+      private_ip_address_allocation = "Static"
+      private_ip_address_version    = "IPv6"
+      private_ip_address            = cidrhost(var.subnet_ipv6_prefixes[0], 10)
+    }
   }
 
   tags = merge(lookup(var.tags, "network-interface", {}), lookup(var.tags, "all", {}))
+}
+
+resource "azurerm_network_interface_backend_address_pool_association" "nic_backend_pool_v6" {
+  count                   = var.enable_ipv6 ? 1 : 0
+  network_interface_id    = azurerm_network_interface.nic.id
+  ip_configuration_name   = "ipconfig1-v6"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.backend_pool_v6[0].id
 }
 
 resource "azurerm_network_interface" "nic1" {
@@ -119,6 +215,18 @@ resource "azurerm_network_interface" "nic1" {
     subnet_id                     = module.vnet.subnets[1]
     private_ip_address_allocation = module.vnet.allocation_method
     private_ip_address            = cidrhost(module.vnet.subnet_prefixes[1], 4)
+    primary                       = true
+  }
+
+  dynamic "ip_configuration" {
+    for_each = var.enable_ipv6 ? [1] : []
+    content {
+      name                          = "ipconfig2-v6"
+      subnet_id                     = module.vnet.subnets[1]
+      private_ip_address_allocation = "Static"
+      private_ip_address_version    = "IPv6"
+      private_ip_address            = cidrhost(var.subnet_ipv6_prefixes[1], 10)
+    }
   }
 
   tags = merge(lookup(var.tags, "network-interface", {}), lookup(var.tags, "all", {}))

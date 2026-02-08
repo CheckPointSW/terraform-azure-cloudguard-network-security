@@ -25,3 +25,15 @@ output "subnet_prefixes" {
 output "allocation_method" {
   value = var.allocation_method
 }
+
+output "ipv6_enabled" {
+  value = var.enable_ipv6
+}
+
+output "ipv6_address_space" {
+  value = var.enable_ipv6 ? var.ipv6_address_space : null
+}
+
+output "subnet_ipv6_prefixes" {
+  value = var.enable_ipv6 ? var.subnet_ipv6_prefixes : []
+}

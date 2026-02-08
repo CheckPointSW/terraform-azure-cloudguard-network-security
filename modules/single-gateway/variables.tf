@@ -214,6 +214,24 @@ variable "subnet_prefixes" {
   default     = ["10.0.0.0/24", "10.0.1.0/24"]
 }
 
+variable "enable_ipv6" {
+  description = "Enable IPv6 dual-stack networking support."
+  type        = bool
+  default     = false
+}
+
+variable "vnet_ipv6_address_space" {
+  description = "The IPv6 address space that is used by the Virtual Network."
+  type        = string
+  default     = "ace:cab:deca::/48"
+}
+
+variable "subnet_ipv6_prefixes" {
+  description = "IPv6 address prefixes to be used for network subnets."
+  type        = list(string)
+  default     = ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]
+}
+
 variable "nsg_id" {
   description = "(Optional) The Network Security Group ID."
   type        = string
