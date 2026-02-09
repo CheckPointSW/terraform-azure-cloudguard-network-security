@@ -197,6 +197,7 @@ This module supports IPv6 dual-stack networking alongside the default IPv4 confi
 **Important Notes:**
 - Gateway VM receives private IPv6 addresses only; public IPv6 is assigned to the Load Balancer
 - All IPv6 internet traffic flows through the Load Balancer (inbound and outbound)
+- IPv6 health probe uses TCP port 8117
 ## Conditional creation
 ### Virtual Network:
 You can specify whether you want to create a new Virtual Network or use an existing one:

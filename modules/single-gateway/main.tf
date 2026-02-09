@@ -114,7 +114,7 @@ resource "azurerm_lb_probe" "lb_probe_v6" {
   name            = "lb-probe"
   loadbalancer_id = azurerm_lb.lb_v6[0].id
   protocol        = "Tcp"
-  port            = 443
+  port            = 8117
   interval_in_seconds = 5
   number_of_probes    = 2
 }
