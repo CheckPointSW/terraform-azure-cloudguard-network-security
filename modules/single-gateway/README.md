@@ -199,7 +199,7 @@ This module supports IPv6 dual-stack networking alongside the default IPv4 confi
 - All IPv6 internet traffic flows through the Load Balancer (inbound and outbound)
 ## Conditional creation
 ### Virtual Network:
-You can specify wether you want to create a new Virtual Network or use an existing one:
+You can specify whether you want to create a new Virtual Network or use an existing one:
 - To create a new Virtual Network:
   ```
   address_space = "10.0.0.0/16"
@@ -209,7 +209,16 @@ You can specify wether you want to create a new Virtual Network or use an existi
   address_space = ""
   existing_vnet_resource_group = "EXISTING VIRTUAL NETWORK RESOURCE GROUP NAME"
   ```
-  When using an existing Virtual Network the variable `frontend_subnet_name` and `backend_subnet_name` will be used as the name of the existing subnets inside the Virtual Network, you can also ignore the `address_prefixes` when you use an existing Virtual Network.
+  
+  When using an existing Virtual Network:
+  - The `frontend_subnet_name` and `backend_subnet_name` variables specify the names of the existing subnets to use.
+  - The `subnet_prefixes` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+
+**IPv6 with Existing VNet:**
+When using an existing VNet with IPv6 enabled (`enable_ipv6 = true`):
+- The `vnet_ipv6_address_space` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+- The `subnet_ipv6_prefixes` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+- The module automatically detects all IPv6 network configuration from Azure when using an existing vnet.
 
 ### Cloud Metrics:
 To enable CloudGuard metrics in order to send statuses and statistics collected from the gateway instance to the Azure Monitor service:

@@ -2,8 +2,11 @@ locals {
   module_name    = "management_terraform_registry"
   module_version = "1.0.9"
 
-  // NSG base security rules
-  nsg_base_security_rules = [
+  // Calculate IPv6 NIC address - use vnet module output for consistency with IPv4
+  nic_ipv6_address = var.enable_ipv6 ? cidrhost(module.vnet.subnet_ipv6_prefixes[0], 10) : null
+
+  // NSG IPv4 security rules
+  nsg_ipv4_rules = [
     {
       name                       = "SSH"
       priority                   = "100"
@@ -101,4 +104,59 @@ locals {
       destination_address_prefix = "*"
     }
   ]
+
+  // NSG IPv6 security rules (conditional)
+  nsg_ipv6_rules = var.enable_ipv6 && var.management_GUI_client_network_ipv6 != "" ? [
+    {
+      name                       = "SSH-IPv6"
+      priority                   = "200"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "22"
+      description                = "Allow inbound SSH connection (IPv6)"
+      source_address_prefix      = var.management_GUI_client_network_ipv6
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "GAiA-portal-IPv6"
+      priority                   = "210"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "443"
+      description                = "Allow inbound HTTPS access to the GAiA portal (IPv6)"
+      source_address_prefix      = var.management_GUI_client_network_ipv6
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "SmartConsole-1-IPv6"
+      priority                   = "220"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18190"
+      description                = "Allow inbound access using the SmartConsole GUI client (IPv6)"
+      source_address_prefix      = var.management_GUI_client_network_ipv6
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "SmartConsole-2-IPv6"
+      priority                   = "230"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "19009"
+      description                = "Allow inbound access using the SmartConsole GUI client (IPv6)"
+      source_address_prefix      = var.management_GUI_client_network_ipv6
+      destination_address_prefix = "*"
+    }
+  ] : []
+
+  // Concatenate IPv4 and IPv6 rules
+  nsg_base_security_rules = concat(local.nsg_ipv4_rules, local.nsg_ipv6_rules)
 }

@@ -6,7 +6,7 @@ terraform {
       version = "~> 3.90.0"
     }
     azapi = {
-      source = "Azure/azapi"
+      source  = "Azure/azapi"
       version = "~> 2.4.0"
     }
     random = {

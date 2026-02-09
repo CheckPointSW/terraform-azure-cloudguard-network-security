@@ -49,6 +49,9 @@ module "vnet" {
   subnet_prefixes              = [var.subnet_prefix]
   subnet_names                 = [var.subnet_name]
   nsg_id                       = module.network_security_group.id
+  enable_ipv6                  = var.enable_ipv6
+  ipv6_address_space           = var.vnet_ipv6_address_space
+  subnet_ipv6_prefixes         = [var.subnet_ipv6_prefix]
   tags                         = var.tags
 }
 
@@ -71,6 +74,19 @@ resource "azurerm_public_ip" "public_ip" {
   tags                    = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
 }
 
+resource "azurerm_public_ip" "public_ip_v6" {
+  count                   = var.enable_ipv6 ? 1 : 0
+  name                    = "${var.mgmt_name}-v6"
+  location                = module.common.resource_group_location
+  resource_group_name     = module.common.resource_group_name
+  allocation_method       = "Static"
+  sku                     = "Standard"
+  ip_version              = "IPv6"
+  idle_timeout_in_minutes = 30
+  domain_name_label       = "${lower(var.mgmt_name)}-v6-${random_id.public_ip_suffix.hex}"
+  tags                    = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
+}
+
 resource "azurerm_network_interface_security_group_association" "security_group_association" {
   depends_on = [
     azurerm_network_interface.nic,
@@ -83,6 +99,7 @@ resource "azurerm_network_interface_security_group_association" "security_group_
 resource "azurerm_network_interface" "nic" {
   depends_on = [
     azurerm_public_ip.public_ip,
+    azurerm_public_ip.public_ip_v6,
     module.vnet
   ]
   name                 = "${var.mgmt_name}-eth0"
@@ -96,6 +113,20 @@ resource "azurerm_network_interface" "nic" {
     private_ip_address_allocation = module.vnet.allocation_method
     private_ip_address            = cidrhost(module.vnet.subnet_prefixes[0], 4)
     public_ip_address_id          = azurerm_public_ip.public_ip.id
+    primary                       = true
+  }
+
+  dynamic "ip_configuration" {
+    for_each = var.enable_ipv6 ? [1] : []
+    content {
+      name                          = "ipconfig1-v6"
+      subnet_id                     = module.vnet.subnets[0]
+      private_ip_address_version    = "IPv6"
+      private_ip_address_allocation = "Static"
+      private_ip_address            = local.nic_ipv6_address
+      public_ip_address_id          = azurerm_public_ip.public_ip_v6[0].id
+      primary                       = false
+    }
   }
 
   tags = merge(lookup(var.tags, "network-interface", {}), lookup(var.tags, "all", {}))

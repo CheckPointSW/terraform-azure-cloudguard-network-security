@@ -156,13 +156,42 @@ variable "subnet_prefix" {
   default     = "10.0.0.0/24"
 }
 
+variable "enable_ipv6" {
+  description = "Enable IPv6 dual-stack networking support."
+  type        = bool
+  default     = false
+}
+
+variable "vnet_ipv6_address_space" {
+  description = "The IPv6 address space that is used by the Virtual Network."
+  type        = string
+  default     = "ace:cab:deca::/48"
+}
+
+variable "subnet_ipv6_prefix" {
+  description = "IPv6 address prefix to be used for network subnet."
+  type        = string
+  default     = "ace:cab:deca:deed::/64"
+}
+
 variable "management_GUI_client_network" {
-  description = "Allowed GUI clients - GUI clients network CIDR."
+  description = "Allowed GUI clients - GUI clients network CIDR or '*' for any."
   type        = string
 
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))$", var.management_GUI_client_network))
-    error_message = "Variable [management_GUI_client_network] must be a valid IPv4 network CIDR."
+    condition     = var.management_GUI_client_network == "*" || can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))$", var.management_GUI_client_network))
+    error_message = "Variable [management_GUI_client_network] must be a valid IPv4 network CIDR or '*'."
+  }
+}
+
+variable "management_GUI_client_network_ipv6" {
+  description = "Allowed GUI clients - GUI clients network IPv6 CIDR."
+  type        = string
+  default     = "::/0"
+
+  validation {
+    condition     = var.management_GUI_client_network_ipv6 == "" || can(regex("^(([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,7}:|([0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|([0-9A-Fa-f]{1,4}:){1,5}(:[0-9A-Fa-f]{1,4}){1,2}|([0-9A-Fa-f]{1,4}:){1,4}(:[0-9A-Fa-f]{1,4}){1,3}|([0-9A-Fa-f]{1,4}:){1,3}(:[0-9A-Fa-f]{1,4}){1,4}|([0-9A-Fa-f]{1,4}:){1,2}(:[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){1,6}|:(:[0-9A-Fa-f]{1,4}){1,7}|::)/(12[0-8]|1[01][0-9]|[1-9][0-9]|[0-9])$", var.management_GUI_client_network_ipv6))
+    error_message = "Variable [management_GUI_client_network_ipv6] must be a valid IPv6 network CIDR or ''."
   }
 }
 

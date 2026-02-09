@@ -30,4 +30,18 @@ locals {
     length(var.subnet_names) == 1 ? [data.azurerm_subnet.frontend[0].address_prefixes[0]] :
     [data.azurerm_subnet.frontend[0].address_prefixes[0], data.azurerm_subnet.backend[0].address_prefixes[0]]
   )
+
+  // For IPv6: Read from existing subnets when using existing VNet, otherwise use provided variables
+  subnet_ipv6_prefixes = local.create_new_vnet ? var.subnet_ipv6_prefixes : (
+    var.enable_ipv6 ? (
+      length(var.subnet_names) == 1 ? 
+        [data.azurerm_subnet.frontend[0].address_prefixes[1]] :
+        [data.azurerm_subnet.frontend[0].address_prefixes[1], data.azurerm_subnet.backend[0].address_prefixes[1]]
+    ) : []
+  )
+
+  // For IPv6 VNet address space: Read from existing VNet when using existing VNet, otherwise use provided variable
+  vnet_ipv6_address_space = local.create_new_vnet ? var.ipv6_address_space : (
+    var.enable_ipv6 ? data.azurerm_virtual_network.existing_vnet[0].address_space[1] : ""
+  )
 }

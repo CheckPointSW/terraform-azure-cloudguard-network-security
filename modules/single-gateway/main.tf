@@ -185,7 +185,7 @@ resource "azurerm_network_interface" "nic" {
       subnet_id                     = module.vnet.subnets[0]
       private_ip_address_allocation = "Static"
       private_ip_address_version    = "IPv6"
-      private_ip_address            = cidrhost(var.subnet_ipv6_prefixes[0], 10)
+      private_ip_address            = cidrhost(module.vnet.subnet_ipv6_prefixes[0], 10)
     }
   }
 
@@ -225,7 +225,7 @@ resource "azurerm_network_interface" "nic1" {
       subnet_id                     = module.vnet.subnets[1]
       private_ip_address_allocation = "Static"
       private_ip_address_version    = "IPv6"
-      private_ip_address            = cidrhost(var.subnet_ipv6_prefixes[1], 10)
+      private_ip_address            = cidrhost(module.vnet.subnet_ipv6_prefixes[1], 10)
     }
   }
 

@@ -77,6 +77,24 @@ resource "azurerm_route_table" "frontend" {
     }
   }
 
+  dynamic "route" {
+    for_each = var.enable_ipv6 ? [1] : []
+    content {
+      name           = "Local-Subnet-V6"
+      address_prefix = var.subnet_ipv6_prefixes[0]
+      next_hop_type  = local.next_hop_type_allowed_values[1]
+    }
+  }
+
+  dynamic "route" {
+    for_each = var.enable_ipv6 ? [1] : []
+    content {
+      name           = "To-Internal-V6"
+      address_prefix = var.ipv6_address_space
+      next_hop_type  = local.next_hop_type_allowed_values[4]
+    }
+  }
+
   tags = merge(lookup(var.tags, "route-table", {}), lookup(var.tags, "all", {}))
 }
 
@@ -109,6 +127,16 @@ resource "azurerm_route_table" "backend" {
     }
   }
 
+  dynamic "route" {
+    for_each = var.enable_ipv6 ? [1] : []
+    content {
+      name                   = "To-Internet-V6"
+      address_prefix         = "::/0"
+      next_hop_type          = local.next_hop_type_allowed_values[3]
+      next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[1].address_prefixes[1], 10)
+    }
+  }
+
   tags = merge(lookup(var.tags, "route-table", {}), lookup(var.tags, "all", {}))
 }
 
@@ -119,6 +147,12 @@ resource "azurerm_subnet_route_table_association" "backend_association" {
 }
 
 //********************** Existing Virtual Network **************************//
+data "azurerm_virtual_network" "existing_vnet" {
+  count               = !local.create_new_vnet ? 1 : 0
+  name                = var.vnet_name
+  resource_group_name = var.existing_vnet_resource_group
+}
+
 data "azurerm_subnet" "frontend" {
   count                = !local.create_new_vnet ? 1 : 0
   name                 = var.subnet_names[0]

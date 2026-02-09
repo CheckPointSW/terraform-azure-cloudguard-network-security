@@ -17,7 +17,12 @@ This solution uses the following submodules:
 ## Usage
 Follow best practices for using CGNS modules on [the root page](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest).
 
-**Example:**
+### Example Deployments
+
+<details>
+<summary><b>IPv4 Only Deployment Example</b></summary>
+<br>
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -69,19 +74,121 @@ module "example_module" {
 }
 ```
 
+</details>
+
+<details>
+<summary><b>IPv6 Dual-Stack Deployment Example</b></summary>
+<br>
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+module "example_module" {
+  source  = "CheckPointSW/cloudguard-network-security/azure//modules/management"
+  version = "1.0.6"
+
+  # Authentication Variables
+  client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  client_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  tenant_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  subscription_id                 = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+  # Basic Configurations Variables
+  resource_group_name = "checkpoint-mgmt-terraform"
+  mgmt_name           = "checkpoint-mgmt-terraform"
+  location            = "eastus"
+  tags                = {}
+
+  # Virtual Machine Instances Variables
+  source_image_vhd_uri           = "noCustomUri"
+  authentication_type            = "Password"
+  admin_password                 = "xxxxxxxxxxxx"
+  serial_console_password_hash   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  maintenance_mode_password_hash = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  vm_size                        = "Standard_D4ds_v5"
+  disk_size                      = "110"
+  os_version                     = "R82"
+  vm_os_sku                      = "mgmt-byol"
+  vm_os_offer                    = "check-point-cg-r82"
+  allow_upload_download          = true
+  admin_shell                    = "/etc/cli.sh"
+  bootstrap_script               = "touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt"
+  zone                           = ""
+
+  # Networking Variables - IPv4
+  vnet_name                     = "checkpoint-mgmt-vnet"
+  subnet_name                   = "checkpoint-mgmt-subnet"
+  address_space                 = "10.0.0.0/16"
+  subnet_prefix                 = "10.0.0.0/24"
+  management_GUI_client_network = "0.0.0.0/0"
+  
+  # IPv6 Dual-Stack Configuration
+  enable_ipv6                        = true
+  vnet_ipv6_address_space            = "ace:cab:deca::/48"
+  subnet_ipv6_prefix                 = "ace:cab:deca:deed::/64"
+  management_GUI_client_network_ipv6 = "::/0"   # Allow access from any IPv6 address (use "" to deny all IPv6 addresses)
+  
+  mgmt_enable_api                 = "disable"
+  nsg_id                          = ""
+  storage_account_deployment_mode = "New"
+  add_storage_account_ip_rules    = false
+  storage_account_additional_ips  = []
+}
+```
+
+</details>
+
+## IPv6 Dual-Stack Support
+This module supports IPv6 dual-stack networking alongside the default IPv4 configuration. When enabled, the management server is accessible via both IPv4 and IPv6 public IPs.
+
+**To enable IPv6 dual-stack:**
+1. Set `enable_ipv6 = true` in your module configuration
+2. Configure the IPv6 address space for your Virtual Network:
+   ```hcl
+   vnet_ipv6_address_space = "ace:cab:deca::/48"
+   ```
+3. Configure the IPv6 subnet prefix (must be a /64 prefix):
+   ```hcl
+   subnet_ipv6_prefix = "ace:cab:deca:deed::/64"
+   ```
+4. Optionally, configure allowed IPv6 clients for management access:
+   ```hcl
+   management_GUI_client_network_ipv6 = "::/0"  # Allow all IPv6, or specify a specific IPv6 CIDR
+   # management_GUI_client_network_ipv6 = ""    # Set to empty string to deny all IPv6-specific NSG rules
+   ```
+
+**IPv6 Requirements:**
+- **Subnet IPv6 Prefix**: Must be exactly a `/64` prefix within the VNet address space (e.g., `ace:cab:deca:deed::/64`)
+
+**Important Notes:**
+- Management server receives both IPv4 and IPv6 public IPs for direct access
+- IPv6 NSG rules mirror the IPv4 rules (SSH, GAiA portal on port 443, SmartConsole on ports 18190 and 19009)
+
 ## Conditional creation
 ### Virtual Network:
-You can specify wether you want to create a new Virtual Network or use an existing one:
-- To create a new Virtual Network:
+You can specify whether you want to create a new Virtual Network or use an existing one:
+- **To create a new Virtual Network:**
   ```
   address_space = "10.0.0.0/16"
+  subnet_prefix = "10.0.0.0/24"
   ```
-- To use an existing Virtual Network:
+- **To use an existing Virtual Network:**
   ```
   address_space = ""
   existing_vnet_resource_group = "EXISTING VIRTUAL NETWORK RESOURCE GROUP NAME"
   ```
-  When using an existing Virtual Network the variable `subnet_name` will be used as the name of the existing subnet inside the Virtual Network, you can also ignore the `address_prefix` when you use an existing Virtual Network.
+  
+  When using an existing Virtual Network:
+  - The `subnet_name` variable specifies the name of the existing subnet to use.
+  - The `subnet_prefix` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+
+**IPv6 with Existing VNet:**
+When using an existing VNet with IPv6 enabled (`enable_ipv6 = true`):
+- The `vnet_ipv6_address_space` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+- The `subnet_ipv6_prefix` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+- The module automatically detects all IPv6 network configuration from Azure when using an existing vnet.
 
 ### Availability types deployment:
 To define the zone for the Management deployment in Availability Zones supported regions:
@@ -140,7 +247,11 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **subnet_name** | The Virtual Network subnet name used for creating a new subnet with that name when create a new Virtual Network or used as the existing subnet name when using an existing Vritual Network. | string | N/A |
 | **address_space** | The address space that is used by a Virtual Network. | string | A valid address in CIDR notation<br />**Default:** "10.0.0.0/16" |
 | **subnet_prefix** | Address prefix to be used for the network subnet. | string | A valid address in CIDR notation<br />**Default:** "10.0.0.0/24" |
-| **management_GUI_client_network** | Allowed GUI clients - GUI clients network CIDR. | string | N/A |
+| **enable_ipv6** | Enable IPv6 dual-stack networking. When enabled, creates additional IPv6 resources including IPv6 public IP and dual-stack network interface. | bool | true;<br/>false;<br/>**Default:** false |
+| **vnet_ipv6_address_space** | The IPv6 address space for the virtual network. Required when enable_ipv6 is true. | string | Valid IPv6 CIDR block<br/>**Default:** "ace:cab:deca::/48" |
+| **subnet_ipv6_prefix** | IPv6 address prefix to be used for the management subnet. Required when enable_ipv6 is true. Must be a /64 prefix. | string | Valid IPv6 CIDR block (must be a /64 prefix within the VNet IPv6 address space)<br/>**Default:** "ace:cab:deca:deed::/64" |
+| **management_GUI_client_network** | Allowed GUI clients - GUI clients network CIDR or '*' for any (IPv4 and IPv6). | string | Valid IPv4 CIDR block or "*"<br />**Default:** "0.0.0.0/0" |
+| **management_GUI_client_network_ipv6** | Allowed GUI clients - GUI clients network IPv6 CIDR. Used when enable_ipv6 is true. Set to "" (empty string) to deny all IPv6-specific NSG rules. | string | Valid IPv6 CIDR block or "" to deny all IPv6 NSG rules<br/>**Default:** "::/0" |
 | **mgmt_enable_api** | Enable API access to the management. | string | "all";<br />"management_only";<br />"gui_clients";<br />"disable";<br />**Default:** "disable" |
 | **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a default NSG will be created. | string | Existing NSG resource ID<br />**Default:** "" |
 | **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None;<br/> **Default:** New |
