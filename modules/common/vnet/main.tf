@@ -53,28 +53,9 @@ resource "azurerm_route_table" "frontend" {
   }
 
   route {
-    name                   = "To-Internal"
-    address_prefix         = var.address_space
-    next_hop_type          = local.next_hop_type_allowed_values[3]
-    next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[0].address_prefixes[0], 4)
-  }
-
-  dynamic "route" {
-    for_each = var.enable_ipv6 ? [1] : []
-    content {
-      name           = "Local-Subnet-V6"
-      address_prefix = var.subnet_ipv6_prefixes[0]
-      next_hop_type  = local.next_hop_type_allowed_values[1]
-    }
-  }
-
-  dynamic "route" {
-    for_each = var.enable_ipv6 ? [1] : []
-    content {
-      name           = "To-Internal-V6"
-      address_prefix = var.ipv6_address_space
-      next_hop_type  = local.next_hop_type_allowed_values[4]
-    }
+    name           = "To-Internal"
+    address_prefix = var.address_space
+    next_hop_type  = local.next_hop_type_allowed_values[4]
   }
 
   dynamic "route" {
@@ -110,15 +91,25 @@ resource "azurerm_route_table" "backend" {
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  route {
-    name                   = "To-Internet"
-    address_prefix         = "0.0.0.0/0"
-    next_hop_type          = local.next_hop_type_allowed_values[3]
-    next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[1].address_prefixes[0], 4)
-  }
-
   dynamic "route" {
-    for_each = var.enable_ipv6 ? [1] : []
+    for_each = var.deployment_type == "single" ? [1] : []
+    content {
+      name                   = "To-Internet"
+      address_prefix         = "0.0.0.0/0"
+      next_hop_type          = local.next_hop_type_allowed_values[3]
+      next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[1].address_prefixes[0], 4)
+    }
+  }
+  dynamic "route" {
+    for_each = var.deployment_type != "single" ? [1] : []
+    content {
+      name           = "To-Internet"
+      address_prefix = "0.0.0.0/0"
+      next_hop_type  = local.next_hop_type_allowed_values[4]
+    }
+  }
+  dynamic "route" {
+    for_each = var.enable_ipv6 && var.deployment_type == "single" ? [1] : []
     content {
       name                   = "To-Internet-V6"
       address_prefix         = "::/0"
@@ -126,14 +117,13 @@ resource "azurerm_route_table" "backend" {
       next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[1].address_prefixes[1], 10)
     }
   }
-
+  
   dynamic "route" {
-    for_each = var.enable_ipv6 ? [1] : []
+    for_each = var.enable_ipv6 && var.deployment_type != "single" ? [1] : []
     content {
-      name                   = "To-Internet-V6"
-      address_prefix         = "::/0"
-      next_hop_type          = local.next_hop_type_allowed_values[3]
-      next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[1].address_prefixes[1], 10)
+      name           = "To-Internet-V6"
+      address_prefix = "::/0"
+      next_hop_type  = local.next_hop_type_allowed_values[4]
     }
   }
 

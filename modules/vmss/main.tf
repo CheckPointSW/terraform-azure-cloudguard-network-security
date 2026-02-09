@@ -41,6 +41,7 @@ module "vnet" {
     module.network_security_group
   ]
   source                       = "../common/vnet"
+  deployment_type              = "vmss"
   vnet_name                    = var.vnet_name
   resource_group_name          = module.common.resource_group_name
   existing_vnet_resource_group = var.existing_vnet_resource_group

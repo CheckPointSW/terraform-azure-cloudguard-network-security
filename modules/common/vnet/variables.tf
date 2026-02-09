@@ -1,4 +1,10 @@
 //********************** Basic Configurations **************************//
+variable "deployment_type" {
+  description = "The type of deployment (e.g., 'single', 'vmss', 'ha'). Used to determine route table configuration."
+  type        = string
+  default     = "vmss"
+}
+
 variable "resource_group_name" {
   description = "Azure Resource Group name to build into."
   type        = string
