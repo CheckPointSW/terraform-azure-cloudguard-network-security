@@ -160,6 +160,8 @@ module "example_module" {
 ## IPv6 Dual-Stack Support
 This module supports IPv6 dual-stack networking alongside the default IPv4 configuration. When enabled, the deployment automatically creates additional IPv6 resources including a Standard Load Balancer with IPv6 public IP.
 
+> **Note:** For required configuration to enable IPv6 support on Check Point appliances, see [sk170760](https://support.checkpoint.com/results/sk/sk170760).
+
 **To enable IPv6 dual-stack:**
 1. Set `enable_ipv6 = true` in your module configuration
 2. Configure the IPv6 address space for your Virtual Network:
