@@ -17,7 +17,7 @@ module "common" {
   os_version                     = var.os_version
   vm_os_sku                      = local.vm_os_sku
   vm_os_offer                    = var.vm_os_offer
-  is_blink                       = var.is_blink
+  is_blink                       = local.is_blink
   authentication_type            = var.authentication_type
   serial_console_password_hash   = var.serial_console_password_hash
   maintenance_mode_password_hash = var.maintenance_mode_password_hash
@@ -298,7 +298,7 @@ resource "azurerm_virtual_machine" "single_gateway_vm_instance" {
       module_name                    = module.common.module_name
       module_version                 = module.common.module_version
       template_type                  = "terraform"
-      is_blink                       = module.common.is_blink
+      is_blink                       = local.is_blink
       bootstrap_script64             = base64encode(var.bootstrap_script)
       location                       = module.common.resource_group_location
       admin_shell                    = var.admin_shell
