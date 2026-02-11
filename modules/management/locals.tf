@@ -1,6 +1,7 @@
 locals {
   module_name    = "management_terraform_registry"
   module_version = "1.0.9"
+  template_name  = var.enable_ipv6 ? "management_terraform_registry_dual_stack" : "management_terraform_registry"
 
   // Calculate IPv6 NIC address - use vnet module output for consistency with IPv4
   nic_ipv6_address = var.enable_ipv6 ? cidrhost(module.vnet.subnet_ipv6_prefixes[0], 10) : null

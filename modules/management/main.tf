@@ -193,7 +193,7 @@ resource "azurerm_virtual_machine" "mgmt_vm_instance" {
       installation_type              = module.common.installation_type
       allow_upload_download          = module.common.allow_upload_download
       os_version                     = module.common.os_version
-      module_name                    = module.common.module_name
+      template_name                  = local.template_name
       module_version                 = module.common.module_version
       template_type                  = "terraform"
       is_blink                       = module.common.is_blink
