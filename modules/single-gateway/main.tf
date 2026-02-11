@@ -15,7 +15,7 @@ module "common" {
   vm_size                        = var.vm_size
   disk_size                      = var.disk_size
   os_version                     = var.os_version
-  vm_os_sku                      = var.vm_os_sku
+  vm_os_sku                      = local.vm_os_sku
   vm_os_offer                    = var.vm_os_offer
   is_blink                       = var.is_blink
   authentication_type            = var.authentication_type
