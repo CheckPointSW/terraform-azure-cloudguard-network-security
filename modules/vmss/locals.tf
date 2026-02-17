@@ -29,7 +29,8 @@ locals {
     x-chkp-management-address   = var.management_IP,
     x-chkp-topology             = "eth0:external,eth1:internal",
     x-chkp-anti-spoofing        = "eth0:false,eth1:false",
-    x-chkp-srcImageUri          = var.source_image_vhd_uri
+    x-chkp-srcImageUri          = var.source_image_vhd_uri,
+    x-chkp-ip-version           = var.enable_ipv6 ? "dual-stack" : "ipv4-only"
     } : {
     x-chkp-management           = var.management_name,
     x-chkp-template             = var.configuration_template_name,
@@ -37,6 +38,7 @@ locals {
     x-chkp-management-interface = local.management_interface_name,
     x-chkp-topology             = "eth0:external,eth1:internal",
     x-chkp-anti-spoofing        = "eth0:false,eth1:false",
-    x-chkp-srcImageUri          = var.source_image_vhd_uri
+    x-chkp-srcImageUri          = var.source_image_vhd_uri,
+    x-chkp-ip-version           = var.enable_ipv6 ? "dual-stack" : "ipv4-only"
   }
 }

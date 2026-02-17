@@ -49,6 +49,9 @@ module "vnet" {
   address_space                = var.address_space
   subnet_prefixes              = var.subnet_prefixes
   subnet_names                 = [var.frontend_subnet_name, var.backend_subnet_name]
+  enable_ipv6                  = var.enable_ipv6
+  ipv6_address_space           = var.vnet_ipv6_address_space
+  subnet_ipv6_prefixes         = var.subnet_ipv6_prefixes
   nsg_id                       = module.network_security_group.id
   tags                         = var.tags
 }
@@ -82,9 +85,22 @@ resource "azurerm_public_ip" "public_ip_lb" {
   tags                = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
 }
 
+resource "azurerm_public_ip" "public_ip_lb_v6" {
+  count               = var.enable_ipv6 && var.deployment_mode != "Internal" ? 1 : 0
+  name                = "${var.vmss_name}-app-1-v6"
+  location            = module.common.resource_group_location
+  resource_group_name = module.common.resource_group_name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  ip_version          = "IPv6"
+  domain_name_label   = "${lower(var.vmss_name)}-v6-${random_id.random_id.hex}"
+  tags                = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
+}
+
 resource "azurerm_lb" "frontend_lb" {
   depends_on = [
-    azurerm_public_ip.public_ip_lb
+    azurerm_public_ip.public_ip_lb,
+    azurerm_public_ip.public_ip_lb_v6
   ]
   count               = var.deployment_mode != "Internal" ? 1 : 0
   name                = "frontend-lb"
@@ -97,6 +113,14 @@ resource "azurerm_lb" "frontend_lb" {
     public_ip_address_id = azurerm_public_ip.public_ip_lb[0].id
   }
 
+  dynamic "frontend_ip_configuration" {
+    for_each = var.enable_ipv6 ? [1] : []
+    content {
+      name                 = "${var.vmss_name}-app-1-v6"
+      public_ip_address_id = azurerm_public_ip.public_ip_lb_v6[0].id
+    }
+  }
+
   tags = merge(lookup(var.tags, "load-balancer", {}), lookup(var.tags, "all", {}))
 }
 
@@ -104,6 +128,12 @@ resource "azurerm_lb_backend_address_pool" "frontend_lb_pool" {
   count           = var.deployment_mode != "Internal" ? 1 : 0
   loadbalancer_id = azurerm_lb.frontend_lb[0].id
   name            = "${var.vmss_name}-app-1"
+}
+
+resource "azurerm_lb_backend_address_pool" "frontend_lb_pool_v6" {
+  count           = var.enable_ipv6 && var.deployment_mode != "Internal" ? 1 : 0
+  loadbalancer_id = azurerm_lb.frontend_lb[0].id
+  name            = "${var.vmss_name}-app-1-v6"
 }
 
 resource "azurerm_lb" "backend_lb" {
@@ -119,12 +149,29 @@ resource "azurerm_lb" "backend_lb" {
     private_ip_address            = cidrhost(module.vnet.subnet_prefixes[1], var.backend_lb_IP_address)
   }
 
+  dynamic "frontend_ip_configuration" {
+    for_each = var.enable_ipv6 ? [1] : []
+    content {
+      name                          = "backend-lb-v6"
+      subnet_id                     = module.vnet.subnets[1]
+      private_ip_address_version    = "IPv6"
+      private_ip_address_allocation = var.backend_lb_ipv6_address != "" ? "Static" : "Dynamic"
+      private_ip_address            = var.backend_lb_ipv6_address != "" ? var.backend_lb_ipv6_address : null
+    }
+  }
+
   tags = merge(lookup(var.tags, "load-balancer", {}), lookup(var.tags, "all", {}))
 }
 
 resource "azurerm_lb_backend_address_pool" "backend_lb_pool" {
   count           = var.deployment_mode != "External" ? 1 : 0
   name            = "backend-lb-pool"
+  loadbalancer_id = azurerm_lb.backend_lb[0].id
+}
+
+resource "azurerm_lb_backend_address_pool" "backend_lb_pool_v6" {
+  count           = var.enable_ipv6 && var.deployment_mode != "External" ? 1 : 0
+  name            = "backend-lb-pool-v6"
   loadbalancer_id = azurerm_lb.backend_lb[0].id
 }
 
@@ -139,6 +186,26 @@ resource "azurerm_lb_probe" "azure_lb_healprob" {
   port                = var.lb_probe_port
   interval_in_seconds = var.lb_probe_interval
   number_of_probes    = var.lb_probe_unhealthy_threshold
+}
+
+resource "azurerm_lb_probe" "azure_lb_healprob_v6_external" {
+  count               = var.enable_ipv6 && var.deployment_mode != "Internal" ? 1 : 0
+  loadbalancer_id     = azurerm_lb.frontend_lb[0].id
+  name                = "${var.vmss_name}-app-1-v6"
+  protocol            = "Tcp"
+  port                = 443
+  interval_in_seconds = 5
+  number_of_probes    = 2
+}
+
+resource "azurerm_lb_probe" "azure_lb_healprob_v6_internal" {
+  count               = var.enable_ipv6 && var.deployment_mode != "External" ? 1 : 0
+  loadbalancer_id     = azurerm_lb.backend_lb[0].id
+  name                = "backend-lb-v6"
+  protocol            = "Tcp"
+  port                = 443
+  interval_in_seconds = 5
+  number_of_probes    = 2
 }
 
 // Standard deployment
@@ -159,6 +226,24 @@ resource "azurerm_lb_rule" "lbnatrule_standard" {
   enable_floating_ip             = var.enable_floating_ip
 }
 
+resource "azurerm_lb_rule" "lbnatrule_standard_v6" {
+  depends_on = [
+    azurerm_lb.frontend_lb[0], azurerm_lb_probe.azure_lb_healprob_v6_external, azurerm_lb.backend_lb[0], azurerm_lb_probe.azure_lb_healprob_v6_internal
+  ]
+  count                          = var.enable_ipv6 && var.deployment_mode == "Standard" ? 2 : 0
+  loadbalancer_id                = count.index == 0 ? azurerm_lb.frontend_lb[0].id : azurerm_lb.backend_lb[0].id
+  name                           = count.index == 0 ? "${var.vmss_name}-app-1-v6" : "backend-lb-v6"
+  protocol                       = count.index == 0 ? "Tcp" : "All"
+  frontend_port                  = count.index == 0 ? var.frontend_port : "0"
+  backend_port                   = count.index == 0 ? var.backend_port : "0"
+  backend_address_pool_ids       = count.index == 0 ? [azurerm_lb_backend_address_pool.frontend_lb_pool_v6[0].id] : [azurerm_lb_backend_address_pool.backend_lb_pool_v6[0].id]
+  frontend_ip_configuration_name = count.index == 0 ? azurerm_lb.frontend_lb[0].frontend_ip_configuration[1].name : azurerm_lb.backend_lb[0].frontend_ip_configuration[1].name
+  probe_id                       = count.index == 0 ? azurerm_lb_probe.azure_lb_healprob_v6_external[0].id : azurerm_lb_probe.azure_lb_healprob_v6_internal[0].id
+  load_distribution              = count.index == 0 ? var.frontend_load_distribution : var.backend_load_distribution
+  enable_floating_ip             = var.enable_floating_ip
+  disable_outbound_snat          = true
+}
+
 // External deployment
 resource "azurerm_lb_rule" "lbnatrule_external" {
   depends_on = [
@@ -177,6 +262,37 @@ resource "azurerm_lb_rule" "lbnatrule_external" {
   enable_floating_ip             = var.enable_floating_ip
 }
 
+resource "azurerm_lb_rule" "lbnatrule_external_v6" {
+  depends_on = [
+    azurerm_lb.frontend_lb[0], azurerm_lb_probe.azure_lb_healprob_v6_external
+  ]
+  count                          = var.enable_ipv6 && var.deployment_mode == "External" ? 1 : 0
+  loadbalancer_id                = azurerm_lb.frontend_lb[0].id
+  name                           = "${var.vmss_name}-app-1-v6"
+  protocol                       = "Tcp"
+  frontend_port                  = var.frontend_port
+  backend_port                   = var.backend_port
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.frontend_lb_pool_v6[0].id]
+  frontend_ip_configuration_name = azurerm_lb.frontend_lb[0].frontend_ip_configuration[1].name
+  probe_id                       = azurerm_lb_probe.azure_lb_healprob_v6_external[0].id
+  load_distribution              = var.frontend_load_distribution
+  enable_floating_ip             = var.enable_floating_ip
+  disable_outbound_snat          = true
+}
+
+resource "azurerm_lb_outbound_rule" "outbound_rule_v6" {
+  count                    = var.enable_ipv6 && var.deployment_mode != "Internal" ? 1 : 0
+  name                     = "egress-v6"
+  loadbalancer_id          = azurerm_lb.frontend_lb[0].id
+  protocol                 = "All"
+  allocated_outbound_ports = var.ipv6_allocated_outbound_ports
+  backend_address_pool_id  = azurerm_lb_backend_address_pool.frontend_lb_pool_v6[0].id
+
+  frontend_ip_configuration {
+    name = azurerm_lb.frontend_lb[0].frontend_ip_configuration[1].name
+  }
+}
+
 // Internal deployment
 resource "azurerm_lb_rule" "lbnatrule_internal" {
   depends_on = [
@@ -193,6 +309,24 @@ resource "azurerm_lb_rule" "lbnatrule_internal" {
   probe_id                       = azurerm_lb_probe.azure_lb_healprob[0].id
   load_distribution              = var.backend_load_distribution
   enable_floating_ip             = var.enable_floating_ip
+}
+
+resource "azurerm_lb_rule" "lbnatrule_internal_v6" {
+  depends_on = [
+    azurerm_lb.backend_lb[0], azurerm_lb_probe.azure_lb_healprob_v6_internal
+  ]
+  count                          = var.enable_ipv6 && var.deployment_mode == "Internal" ? 1 : 0
+  loadbalancer_id                = azurerm_lb.backend_lb[0].id
+  name                           = "backend-lb-v6"
+  protocol                       = "All"
+  frontend_port                  = "0"
+  backend_port                   = "0"
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_lb_pool_v6[0].id]
+  frontend_ip_configuration_name = azurerm_lb.backend_lb[0].frontend_ip_configuration[1].name
+  probe_id                       = azurerm_lb_probe.azure_lb_healprob_v6_internal[0].id
+  load_distribution              = var.backend_load_distribution
+  enable_floating_ip             = var.enable_floating_ip
+  disable_outbound_snat          = true
 }
 
 //********************** Storage accounts **************************//
@@ -218,6 +352,10 @@ module "custom_image" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
+  depends_on = [
+    azurerm_lb_backend_address_pool.frontend_lb_pool_v6,
+    azurerm_lb_backend_address_pool.backend_lb_pool_v6
+  ]
   name                = var.vmss_name
   location            = module.common.resource_group_location
   resource_group_name = module.common.resource_group_name
@@ -317,6 +455,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
         domain_name_label       = "${lower(var.vmss_name)}-dns-name"
       }
     }
+    dynamic "ip_configuration" {
+      for_each = var.enable_ipv6 ? [1] : []
+      content {
+        name                                   = "ipconfig1-v6"
+        subnet_id                              = module.vnet.subnets[0]
+        load_balancer_backend_address_pool_ids = var.deployment_mode != "Internal" ? [azurerm_lb_backend_address_pool.frontend_lb_pool_v6[0].id] : null
+        primary                                = false
+        version                                = "IPv6"
+      }
+    }
   }
 
   network_interface {
@@ -329,6 +477,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
       subnet_id                              = module.vnet.subnets[1]
       load_balancer_backend_address_pool_ids = var.deployment_mode != "External" ? [azurerm_lb_backend_address_pool.backend_lb_pool[0].id] : null
       primary                                = true
+    }
+    dynamic "ip_configuration" {
+      for_each = var.enable_ipv6 ? [1] : []
+      content {
+        name                                   = "ipconfig2-v6"
+        subnet_id                              = module.vnet.subnets[1]
+        load_balancer_backend_address_pool_ids = var.deployment_mode != "External" ? [azurerm_lb_backend_address_pool.backend_lb_pool_v6[0].id] : null
+        primary                                = false
+        version                                = "IPv6"
+      }
     }
   }
 

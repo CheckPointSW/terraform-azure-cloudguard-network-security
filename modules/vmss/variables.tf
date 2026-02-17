@@ -1,22 +1,22 @@
 //********************** Basic Configuration Variables **************************//
 variable "subscription_id" {
   description = "Subscription ID"
-  type = string
+  type        = string
 }
 
 variable "tenant_id" {
   description = "Tenant ID"
-  type = string
+  type        = string
 }
 
 variable "client_id" {
   description = "Application ID(Client ID)"
-  type = string
+  type        = string
 }
 
 variable "client_secret" {
   description = "A secret string that the application uses to prove its identity when requesting a token. Also can be referred to as application password."
-  type = string
+  type        = string
 }
 
 variable "resource_group_name" {
@@ -224,6 +224,36 @@ variable "subnet_prefixes" {
   description = "Address prefix to be used for network subnets."
   type        = list(string)
   default     = ["10.0.0.0/24", "10.0.1.0/24"]
+}
+
+variable "enable_ipv6" {
+  description = "Enable dual-stack IPv6 support for the VMSS deployment."
+  type        = bool
+  default     = false
+}
+
+variable "vnet_ipv6_address_space" {
+  description = "The IPv6 address space that is used by the Virtual Network."
+  type        = string
+  default     = "ace:cab:deca::/48"
+}
+
+variable "subnet_ipv6_prefixes" {
+  description = "IPv6 address prefixes to be used for network subnets."
+  type        = list(string)
+  default     = ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]
+}
+
+variable "backend_lb_ipv6_address" {
+  description = "Static IPv6 address for the internal load balancer frontend. Leave empty for dynamic allocation."
+  type        = string
+  default     = "ace:cab:deca:deee::a"
+}
+
+variable "ipv6_allocated_outbound_ports" {
+  description = "Number of allocated outbound ports for IPv6 SNAT on the external load balancer."
+  type        = number
+  default     = 1024
 }
 
 variable "nsg_id" {

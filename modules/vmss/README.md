@@ -6,6 +6,8 @@ As part of the deployment the following resources are created:
 - Network security group
 - Storage account
 - Role assignment - conditional creation
+- External Load Balancer (for Standard and External deployment modes)
+- Internal Load Balancer (for Standard and Internal deployment modes)
 
 This solution uses the following modules:
 - common - used for creating a resource group and defining common variables.
@@ -19,7 +21,12 @@ please see the [CloudGuard Network for Azure Virtual Machine Scale Sets (VMSS) D
 ## Usage
 Follow best practices for using CGNS modules on [the root page](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest).
 
-**Example:**
+### Example Deployments
+
+<details>
+<summary><b>IPv4 Only Deployment Example</b></summary>
+<br>
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -95,19 +102,165 @@ module "example_module" {
 }
 ```
 
+</details>
+
+<details>
+<summary><b>IPv6 Dual-Stack Deployment Example</b></summary>
+<br>
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+module "example_module" {
+  source  = "CheckPointSW/cloudguard-network-security/azure//modules/vmss"
+  version = "1.0.6"
+
+  # Authentication Variables
+  client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  client_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  tenant_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  subscription_id                 = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+  # Basic Configurations Variables
+  vmss_name           = "checkpoint-vmss-terraform"
+  resource_group_name = "checkpoint-vmss-terraform"
+  location            = "eastus"
+  tags                = {}
+
+  # Virtual Machine Instances Variables
+  source_image_vhd_uri           = "noCustomUri"
+  authentication_type            = "Password"
+  admin_password                 = "xxxxxxxxxxxx"
+  sic_key                        = "xxxxxxxxxxxx"
+  serial_console_password_hash   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  maintenance_mode_password_hash = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  vm_size                        = "Standard_D4ds_v5"
+  disk_size                      = "100"
+  os_version                     = "R82"
+  vm_os_sku                      = "sg-byol"
+  vm_os_offer                    = "check-point-cg-r82"
+  allow_upload_download          = true
+  admin_shell                    = "/etc/cli.sh"
+  bootstrap_script               = "touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt"
+  availability_zones_num         = "3"
+  availability_zones             = ["1", "2", "3"]
+  configuration_template_name    = "vmss_template"
+  enable_custom_metrics          = true
+
+  # Management Variables
+  management_name      = "mgmt"
+  management_IP        = "13.92.42.181"
+  management_interface = "eth1-private"
+
+  # Networking Variables - IPv4
+  vnet_name                       = "checkpoint-vmss-vnet"
+  frontend_subnet_name            = "Frontend"
+  backend_subnet_name             = "Backend"
+  address_space                   = "10.0.0.0/16"
+  subnet_prefixes                 = ["10.0.1.0/24", "10.0.2.0/24"]
+  nsg_id                          = ""
+  storage_account_deployment_mode = "New"
+  add_storage_account_ip_rules    = false
+  storage_account_additional_ips  = []
+
+  # Load Balancers Variables
+  deployment_mode              = "Standard"
+  backend_lb_IP_address        = 4
+  frontend_load_distribution   = "Default"
+  backend_load_distribution    = "Default"
+  enable_floating_ip           = true
+  use_public_ip_prefix         = false
+  create_public_ip_prefix      = false
+  existing_public_ip_prefix_id = ""
+
+  # Scale Set variables
+  number_of_vm_instances         = 2
+  minimum_number_of_vm_instances = 2
+  maximum_number_of_vm_instances = 10
+  notification_email             = ""
+
+  # IPv6 Dual-Stack Configuration
+  enable_ipv6                    = true
+  vnet_ipv6_address_space        = "ace:cab:deca::/48"
+  subnet_ipv6_prefixes           = ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]
+  backend_lb_ipv6_address        = "ace:cab:deca:deee::a"
+  ipv6_allocated_outbound_ports  = 1024
+}
+```
+
+</details>
+
+## IPv6 Dual-Stack Support
+This module supports IPv6 dual-stack networking alongside the default IPv4 configuration. When enabled, the deployment automatically creates additional IPv6 resources including dual-stack load balancers with IPv6 frontend configurations.
+
+**To enable IPv6 dual-stack:**
+1. Set `enable_ipv6 = true` in your module configuration
+2. Configure the IPv6 address space for your Virtual Network:
+   ```hcl
+   vnet_ipv6_address_space = "ace:cab:deca::/48"
+   ```
+3. Configure IPv6 subnet prefixes (one /64 prefix per subnet):
+   ```hcl
+   subnet_ipv6_prefixes = ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]
+   ```
+4. (Optional) Configure static IPv6 address for internal load balancer:
+   ```hcl
+   backend_lb_ipv6_address = "ace:cab:deca:deee::a"
+   ```
+   Leave empty (`""`) for dynamic allocation.
+5. (Optional) Configure IPv6 outbound SNAT port allocation:
+   ```hcl
+   ipv6_allocated_outbound_ports = 1024
+   ```
+
+**IPv6 Architecture:**
+- **External Load Balancer**: Gets dual-stack frontend IP configurations (IPv4 + IPv6 public IPs)
+  - IPv6 health probe uses TCP port 443
+  - IPv6 outbound rule provides SNAT for out-bound traffic
+  - Load balancing rules for both IPv4 and IPv6
+- **Internal Load Balancer**: Gets dual-stack frontend IP configurations (IPv4 + IPv6 private IPs)
+  - IPv6 health probe uses TCP port 443
+  - HA Ports configuration for internal traffic
+- **VMSS Instances**: Each instance receives:
+  - Frontend NIC (eth0): Public IPv4 + Private IPv4 + Private IPv6 addresses
+  - Backend NIC (eth1): Private IPv4 + Private IPv6 addresses
+  - No instance-level public IPv6 addresses (all traffic via load balancer)
+
+**IPv6 Requirements:**
+- **Subnet IPv6 Prefixes**: Must be exactly `/64` prefixes within the VNet address space
+  - Frontend subnet: First `/64` prefix (e.g., `ace:cab:deca:deed::/64`)
+  - Backend subnet: Second `/64` prefix (e.g., `ace:cab:deca:deee::/64`)
+
+**Important Notes:**
+- VMSS instances receive private IPv6 addresses only; public IPv6 is assigned to the External Load Balancer
+- All IPv6 internet traffic flows through the External Load Balancer (inbound and outbound)
+- IPv6 outbound connectivity is handled by the load balancer's outbound rule (no instance-level public IPs)
+
 ## Conditional creation
 ### Virtual Network:
-You can specify wether you want to create a new Virtual Network or use an existing one:
-- To create a new Virtual Network:
+You can specify whether you want to create a new Virtual Network or use an existing one:
+- **To create a new Virtual Network:**
   ```
   address_space = "10.0.0.0/16"
+  subnet_prefixes = ["10.0.1.0/24", "10.0.2.0/24"]
   ```
-- To use an existing Virtual Network:
+- **To use an existing Virtual Network:**
   ```
   address_space = ""
   existing_vnet_resource_group = "EXISTING VIRTUAL NETWORK RESOURCE GROUP NAME"
   ```
-  When using an existing Virtual Network the variable `frontend_subnet_name` and `backend_subnet_name` will be used as the name of the existing subnets inside the Virtual Network, you can also ignore the `address_prefixes` when you use an existing Virtual Network.
+  
+  When using an existing Virtual Network:
+  - The `frontend_subnet_name` and `backend_subnet_name` variables specify the names of the existing subnets to use.
+  - The `subnet_prefixes` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+
+**IPv6 with Existing VNet:**
+When using an existing VNet with IPv6 enabled (`enable_ipv6 = true`):
+- The `vnet_ipv6_address_space` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+- The `subnet_ipv6_prefixes` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+- The module automatically detects all IPv6 network configuration from Azure when using an existing vnet.
 
 ### Availability types deployment:
 - To define the number of zones for VMSS instances deployment in supported regions:
@@ -225,4 +378,9 @@ For more information, refer to the official - [Checkout the Azure Terraform docu
 | **number_of_vm_instances** | The default number of VMSS instances to deploy. | number | The number of VMSS instances must not be less then `minimum_number_of_vm_instances`. If the number of VMSS is greater then the `maximum_number_of_vm_instances` use the maximum number by default.<br/>**Default**: 2; |
 | **minimum_number_of_vm_instances** | The minimum number of VMSS instances for this resource. | number | Valid values are in the range 0 - 10. |
 | **maximum_number_of_vm_instances** | The maximum number of VMSS instances for this resource. | number | Valid values are in the range 0 - 10. |
-| **notification_email** | An email address to notify about scaling operations. | string | Leave empty double quotes or enter a valid email address. |
+| **notification_email** | An email address to notify about scaling operations. | string | Leave empty double quotes or enter a valid email address.
+| **enable_ipv6** | Enable dual-stack IPv6 support for the VMSS deployment. | boolean | true;<br />false;<br />**Default:** false |
+| **vnet_ipv6_address_space** | The IPv6 address space that is used by the Virtual Network. | string | Valid IPv6 CIDR block (e.g., "ace:cab:deca::/48").<br />**Default:** "ace:cab:deca::/48" |
+| **subnet_ipv6_prefixes** | IPv6 address prefixes to be used for network subnets. Must be exactly /64 prefixes. | list(string) | List of two /64 IPv6 CIDR blocks (e.g., ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]).<br />**Important:** Index [0] is used for the **frontend subnet**, index [1] is used for the **backend subnet**.<br />**Default:** ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"] |
+| **backend_lb_ipv6_address** | Static IPv6 address for the internal load balancer frontend. Leave empty for dynamic allocation. | string | Valid IPv6 address within the backend subnet prefix or empty string for dynamic allocation.<br />**Default:** "ace:cab:deca:deee::a" |
+| **ipv6_allocated_outbound_ports** | Number of allocated outbound ports for IPv6 SNAT on the external load balancer. | number | Valid range: 0-64000.<br />**Default:** 1024 |
