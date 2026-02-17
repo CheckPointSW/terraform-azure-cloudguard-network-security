@@ -193,7 +193,7 @@ resource "azurerm_lb_probe" "azure_lb_healprob_v6_external" {
   loadbalancer_id     = azurerm_lb.frontend_lb[0].id
   name                = "${var.vmss_name}-app-1-v6"
   protocol            = "Tcp"
-  port                = 443
+  port                = 8117
   interval_in_seconds = 5
   number_of_probes    = 2
 }
@@ -203,7 +203,7 @@ resource "azurerm_lb_probe" "azure_lb_healprob_v6_internal" {
   loadbalancer_id     = azurerm_lb.backend_lb[0].id
   name                = "backend-lb-v6"
   protocol            = "Tcp"
-  port                = 443
+  port                = 8117
   interval_in_seconds = 5
   number_of_probes    = 2
 }

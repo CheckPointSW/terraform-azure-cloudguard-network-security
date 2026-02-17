@@ -217,11 +217,11 @@ This module supports IPv6 dual-stack networking alongside the default IPv4 confi
 
 **IPv6 Architecture:**
 - **External Load Balancer**: Gets dual-stack frontend IP configurations (IPv4 + IPv6 public IPs)
-  - IPv6 health probe uses TCP port 443
+  - IPv6 health probe uses TCP port 8117
   - IPv6 outbound rule provides SNAT for out-bound traffic
   - Load balancing rules for both IPv4 and IPv6
 - **Internal Load Balancer**: Gets dual-stack frontend IP configurations (IPv4 + IPv6 private IPs)
-  - IPv6 health probe uses TCP port 443
+  - IPv6 health probe uses TCP port 8117
   - HA Ports configuration for internal traffic
 - **VMSS Instances**: Each instance receives:
   - Frontend NIC (eth0): Public IPv4 + Private IPv4 + Private IPv6 addresses
