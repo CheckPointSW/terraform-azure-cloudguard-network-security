@@ -1,6 +1,7 @@
 locals {
   module_name    = "vmss_terraform_registry"
   module_version = "1.0.9"
+  template_name  = var.enable_ipv6 ? "vmss_terraform_registry_dual_stack" : "vmss_terraform_registry"
 
   // Validate that the minimum number of VM instances is at least 0.
   // If not, return an error message.

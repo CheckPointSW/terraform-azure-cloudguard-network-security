@@ -3,7 +3,7 @@
 installationType="${installation_type}"
 allowUploadDownload="${allow_upload_download}"
 osVersion="${os_version}"
-templateName="${module_name}"
+templateName="${template_name}"
 templateVersion="${module_version}"
 templateType="${template_type}"
 isBlink="${is_blink}"
