@@ -27,6 +27,7 @@ variable "client_id" {
 variable "client_secret" {
   description = "A secret string that the application uses to prove its identity when requesting a token. Also can be referred to as application password."
   type        = string
+  sensitive   = true
 }
 
 //********************** Basic Configurations Variables **************************//
@@ -295,30 +296,35 @@ variable "smart1_cloud_token_a" {
   description = "Smart-1 Cloud Token, for configuring member A."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "smart1_cloud_token_b" {
   description = "Smart-1 Cloud Token, for configuring member B."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "smart1_cloud_token_c" {
   description = "Smart-1 Cloud Token, for configuring member C."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "smart1_cloud_token_d" {
   description = "Smart-1 Cloud Token, for configuring member D."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "smart1_cloud_token_e" {
   description = "Smart-1 Cloud Token, for configuring member E."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 //********************** Marketplace Plan Configurations Variables **************************//

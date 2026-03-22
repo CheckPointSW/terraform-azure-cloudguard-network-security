@@ -17,6 +17,7 @@ variable "client_id" {
 variable "client_secret" {
   description = "A secret string that the application uses to prove its identity when requesting a token. Also can be referred to as application password."
   type        = string
+  sensitive   = true
 }
 
 variable "resource_group_name" {
@@ -60,6 +61,7 @@ variable "authentication_type" {
 variable "admin_password" {
   description = "Administrator password of deployed Virtual Machine. The password must meet the complexity requirements of Azure"
   type        = string
+  sensitive   = true
 }
 
 variable "admin_SSH_key" {
@@ -71,6 +73,7 @@ variable "admin_SSH_key" {
 variable "sic_key" {
   description = "Secure Internal Communication (SIC) key."
   type        = string
+  sensitive   = true
 
   validation {
     condition     = length(var.sic_key) >= 12
@@ -82,12 +85,14 @@ variable "serial_console_password_hash" {
   description = "Optional parameter, used to enable serial console connection in case of SSH key as authentication type."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "maintenance_mode_password_hash" {
   description = "Maintenance mode password hash, relevant only for R81.20 and higher versions."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "vm_size" {

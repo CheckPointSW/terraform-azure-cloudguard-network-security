@@ -50,6 +50,7 @@ variable "admin_username" {
 variable "admin_password" {
   description = "Administrator password of deployed Virtual Machine. The password must meet the complexity requirements of Azure"
   type        = string
+  sensitive   = true
 }
 
 variable "admin_shell" {
@@ -71,11 +72,13 @@ variable "admin_shell" {
 variable "serial_console_password_hash" {
   description = "Optional parameter, used to enable serial console connection in case of SSH key as authentication type"
   type        = string
+  sensitive   = true
 }
 
 variable "maintenance_mode_password_hash" {
   description = "Maintenance mode password hash, relevant only for R81.20 and higher versions"
   type        = string
+  sensitive   = true
 }
 
 variable "vm_instance_identity_type" {

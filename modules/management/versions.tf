@@ -7,13 +7,14 @@ terraform {
     }
     azapi = {
       source  = "Azure/azapi"
-      version = "~> 2.4.0"
+      version = "~> 2.7.0"
     }
     random = {
       version = "~> 3.6.0"
     }
   }
 }
+
 provider "azapi" {
   subscription_id = var.subscription_id
   client_id       = var.client_id
