@@ -329,11 +329,11 @@ For more information, refer to the official - [Checkout the Azure Terraform docu
 | **source_image_vhd_uri** | The URI of the blob containing the development image. Please use noCustomUri if you want to use marketplace images. | string | **Default:** "noCustomUri" |
 | **admin_username** | The username of the local administrator used for the Virtual Machines. | string | **Default:** "azureuser" |
 | **authentication_type** | Specifies whether a password authentication or SSH Public Key authentication should be used. | string | "Password";<br />"SSH Public Key"; |
-| **admin_password** | The password associated with the local administrator account on each cluster member. | string | Password must have 3 of the following: 1 lowercase character, 1 uppercase character, 1 number, and 1 special character. |
+| **admin_password** | (Optional) Administrator password of the deployed VM. Required when authentication_type is 'Password'. | string | Password must have 3 of the following: 1 lowercase character, 1 uppercase character, 1 number, and 1 special character.<br />**Default:** "" |
 | **admin_SSH_key** | The SSH public key for SSH connections to the instance. Used when the authentication_type is 'SSH Public Key'. | string | **Default:** "" |
 | **sic_key** | The Secure Internal Communication one-time secret used to set up trust between the cluster object and the management server. | string | Only alphanumeric characters are allowed, and the value must be 12-30 characters long. |
-| **serial_console_password_hash** | Optional parameter, used to enable serial console connection in case of SSH key as authentication type. | string | N/A |
-| **maintenance_mode_password_hash** | Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | N/A |
+| **serial_console_password_hash** | (Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication. | string | **Default:** "" |
+| **maintenance_mode_password_hash** | (Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | **Default:** "" |
 | **vm_size** | Specifies the size of Virtual Machine. | string | A list of valid VM sizes (e.g., "Standard_D4ds_v5", "Standard_D8ds_v5", etc). |
 | **disk_size** | Storage data disk size (GB) must be 100 for versions R81.20 and below. | string | A number in the range 100 - 3995 (GB).<br />**Default:** 100 |
 | **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210";<br />|

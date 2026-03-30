@@ -111,8 +111,8 @@ You can define if you want to deploy the NVA along side a new Virtual WAN or to 
 | **admin_shell** | Enables to select different admin shells. | string | /etc/cli.sh;<br/>/bin/bash;<br/>/bin/csh;<br/>/bin/tcsh.<br/>**Default:** "/etc/cli.sh" |
 | **sic_key** | The Secure Internal Communication one time secret used to set up trust between the gateway object and the management server. | string | Only alphanumeric characters are allowed, and the value must be 12-30 characters long. |
 | **admin_SSH_key** | The public ssh key used for ssh connection to the NVA GW instances. | string | ssh-rsa xxxxxxxxxxxxxxxxxxxxxxxx generated-by-azure. |
-| **serial_console_password_hash** | Optional parameter, used to enable serial console connection. In R81.10 and below, the serial console password is also used as the maintenance mode password. To generate password hash use the command `openssl passwd -6 PASSWORD` on Linux.<br/>**Note:** In Azure Virtual Wan there is currently no serial console on the Network Virtual Appliance, the serial console password will be used as a maintenance mode password in R81.10 and below. | string | N/A |
-| **maintenance_mode_password_hash** | Maintenance mode password hash, relevant only for R81.20 and higher versions. To generate a password hash, use the command `grub2-mkpasswd-pbkdf2` on Linux. | string | N/A |
+| **serial_console_password_hash** | (Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication. | string | **Default:** "" |
+| **maintenance_mode_password_hash** | (Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | **Default:** "" |
 | **bgp_asn** | The BGP autonomous system number. | string | 64512.<br/>**Default:** "64512" |
 | **custom_metrics** | Indicates whether CloudGuard Metrics will be use for gateway monitoring. | string | yes;<br/>no;<br/>**Default:** "yes" |
 | **routing_intent_internet_traffic** | Set routing intent policy to allow internet traffic through the new nva. | string | yes;<br/>no.<br/>Please verify routing-intent is configured successfully post-deployment.<br/>**Default:** "yes" |

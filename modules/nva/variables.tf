@@ -202,13 +202,13 @@ variable "admin_SSH_key" {
 }
 
 variable "serial_console_password_hash" {
-  description = "Serial console connection password hash. In R81.10 and below, the serial console password is also used as the maintenance mode password."
+  description = "(Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication."
   type        = string
   default     = ""
 }
 
 variable "maintenance_mode_password_hash" {
-  description = "Maintenance mode password hash, relevant only for R81.20 and higher versions."
+  description = "(Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions."
   type        = string
   default     = ""
 }

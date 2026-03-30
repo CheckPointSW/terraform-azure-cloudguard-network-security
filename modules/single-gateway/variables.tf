@@ -1,23 +1,23 @@
 //********************** Basic Configuration Variables **************************//
 variable "subscription_id" {
   description = "Subscription ID"
-  type = string
+  type        = string
 }
 
 variable "tenant_id" {
   description = "Tenant ID"
-  type = string
+  type        = string
 }
 
 variable "client_id" {
   description = "Application ID(Client ID)"
-  type = string
+  type        = string
 }
 
 variable "client_secret" {
   description = "A secret string that the application uses to prove its identity when requesting a token. Also can be referred to as application password."
-  type = string
-  sensitive = true
+  type        = string
+  sensitive   = true
 }
 
 variable "resource_group_name" {
@@ -60,9 +60,15 @@ variable "authentication_type" {
 }
 
 variable "admin_password" {
-  description = "Administrator password of deployed Virtual Machine. The password must meet the complexity requirements of Azure."
+  description = "(Optional) Administrator password of the deployed VM. Required when authentication_type is 'Password'."
   type        = string
+  default     = ""
   sensitive   = true
+
+  validation {
+    condition     = var.authentication_type == "SSH Public Key" || var.admin_password != ""
+    error_message = "admin_password is required when authentication_type is 'Password'."
+  }
 }
 
 variable "admin_SSH_key" {
@@ -83,14 +89,16 @@ variable "sic_key" {
 }
 
 variable "serial_console_password_hash" {
-  description = "Optional parameter, used to enable serial console connection in case of SSH key as authentication type."
+  description = "(Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication."
   type        = string
+  default     = ""
   sensitive   = true
 }
 
 variable "maintenance_mode_password_hash" {
-  description = "Maintenance mode password hash, relevant only for R81.20 and higher versions."
+  description = "(Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions."
   type        = string
+  default     = ""
   sensitive   = true
 }
 
@@ -172,6 +180,7 @@ variable "zone" {
 variable "smart_1_cloud_token" {
   description = "Smart-1 Cloud Token."
   type        = string
+  default     = ""
 }
 
 //********************** Management Variables **************************//
