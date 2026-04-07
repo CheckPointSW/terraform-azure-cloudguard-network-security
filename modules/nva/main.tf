@@ -277,6 +277,4 @@ resource "azapi_resource" "routing_intent" {
       routingPolicies = local.routing_intent_policies
     }
   }
-
-  tags = merge(lookup(var.tags, "routing-intent", {}), lookup(var.tags, "all", {}))
 }
