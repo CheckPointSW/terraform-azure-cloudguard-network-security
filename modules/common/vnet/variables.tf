@@ -15,6 +15,12 @@ variable "location" {
   type        = string
 }
 
+variable "edge_zone" {
+  description = "Azure Extended Zone name to deploy the VNet into (e.g. losangeles, perth). Use null for standard regions."
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "Tags to be associated with Virtual Network and subnets"
   type        = map(map(string))
@@ -126,6 +132,12 @@ variable "dns_servers" {
   description = " DNS servers to be used with a Virtual Network. If no values specified, this defaults to Azure DNS."
   type        = list(string)
   default     = []
+}
+
+variable "backend_next_hop_ip_host" {
+  description = "Host number within the backend subnet used as the next-hop IP for the backend route table. Must match the backend NIC IP host assignment."
+  type        = number
+  default     = 4
 }
 
 variable "allocation_method" {

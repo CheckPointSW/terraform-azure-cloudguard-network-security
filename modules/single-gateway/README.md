@@ -44,6 +44,7 @@ module "example_module" {
   resource_group_name = "checkpoint-single-rg-terraform"
   single_gateway_name = "checkpoint-single-terraform"
   location            = "eastus"
+  extended_zone       = "None"
   tags                = {}
 
   # Virtual Machine Instances Variables
@@ -79,6 +80,7 @@ module "example_module" {
   subnet_prefixes                 = ["10.0.1.0/24", "10.0.2.0/24"]
   nsg_id                          = ""
   storage_account_deployment_mode = "New"
+  storage_account_type            = "Standard_LRS"
   add_storage_account_ip_rules    = false
   storage_account_additional_ips  = []
 }
@@ -109,6 +111,7 @@ module "example_module" {
   resource_group_name = "checkpoint-single-rg-terraform"
   single_gateway_name = "checkpoint-single-terraform"
   location            = "eastus"
+  extended_zone       = "None"
   tags                = {}
 
   # Virtual Machine Instances Variables
@@ -150,12 +153,34 @@ module "example_module" {
 
   nsg_id                          = ""
   storage_account_deployment_mode = "New"
+  storage_account_type            = "Standard_LRS"
   add_storage_account_ip_rules    = false
   storage_account_additional_ips  = []
 }
 ```
 
 </details>
+
+## Extended Zone Support
+This module supports Azure Extended Zones through the `extended_zone` variable.
+
+- Supported values: `None`, `losangeles`, `perth`.
+- Region mapping:
+  - `losangeles` requires `location = "westus"`
+  - `perth` requires `location = "australiaeast"`
+- When `extended_zone` is not `None`:
+  - `zone` must be empty (`""`)
+  - `enable_ipv6` must be `false` (IPv6 is not supported)
+  - `storage_account_type` must be `"Premium_LRS"`
+  - Boot diagnostics storage account deployment mode is forced to `None` internally
+
+Extended zone example:
+```hcl
+location             = "westus"
+extended_zone        = "losangeles"
+zone                 = ""
+storage_account_type = "Premium_LRS"
+```
 
 ## IPv6 Dual-Stack Support
 This module supports IPv6 dual-stack networking alongside the default IPv4 configuration. When enabled, the deployment automatically creates additional IPv6 resources including a Standard Load Balancer with IPv6 public IP.
@@ -216,6 +241,40 @@ You can specify whether you want to create a new Virtual Network or use an exist
   When using an existing Virtual Network:
   - The `frontend_subnet_name` and `backend_subnet_name` variables specify the names of the existing subnets to use.
   - The `subnet_prefixes` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
+
+### Private IP Assignment:
+The module supports two ways to set the gateway private IPv4 addresses for `eth0` and `eth1`.
+
+- Host-based assignment:
+  - `frontend_private_ip_host`
+  - `backend_private_ip_host`
+- Explicit IP assignment:
+  - `frontend_private_ip`
+  - `backend_private_ip`
+
+Resolution order is:
+- If `frontend_private_ip` or `backend_private_ip` is set, that explicit IP is used.
+- Otherwise the module derives the IP from the relevant subnet prefix and the matching `*_private_ip_host` value.
+- If neither is overridden, the defaults are used.
+
+Host-based example:
+```hcl
+subnet_prefixes            = ["10.0.1.0/24", "10.0.2.0/24"]
+frontend_private_ip_host   = 25
+backend_private_ip_host    = 24
+```
+
+This produces:
+- `eth0 = 10.0.1.25`
+- `eth1 = 10.0.2.24`
+
+Explicit IP example:
+```hcl
+frontend_private_ip = "10.0.1.25"
+backend_private_ip  = "10.0.2.24"
+```
+
+These options work for both new and existing VNets. When using explicit IPs, make sure they belong to the selected frontend and backend subnet ranges and do not overlap with other resources already deployed in those subnets.
 
 **IPv6 with Existing VNet:**
 When using an existing VNet with IPv6 enabled (`enable_ipv6 = true`):
@@ -284,6 +343,10 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **backend_subnet_name** | The Virtual Network subnet name for the backend interface. | string | N/A |
 | **address_space** | The address prefixes of the virtual network. | string | Valid CIDR block<br />**Default:** "10.0.0.0/16" |
 | **subnet_prefixes** | Address prefix to be used for network subnets. | list(string) | The subnets need to be contained within the address space for this virtual network (defined by the address_space variable).<br />**Important:** Index [0] is used for the **frontend subnet**, index [1] is used for the **backend subnet**.<br />**Default:** ["10.0.0.0/24", "10.0.1.0/24"] |
+| **frontend_private_ip_host** | Optional host number used to derive the frontend `eth0` private IPv4 address from the frontend subnet prefix when `frontend_private_ip` is not set. | number | **Default:** 4 |
+| **backend_private_ip_host** | Optional host number used to derive the backend `eth1` private IPv4 address from the backend subnet prefix when `backend_private_ip` is not set. | number | **Default:** 4 |
+| **frontend_private_ip** | Optional explicit private IPv4 address for `eth0`. If set, it overrides `frontend_private_ip_host`. | string | **Default:** "" |
+| **backend_private_ip** | Optional explicit private IPv4 address for `eth1`. If set, it overrides `backend_private_ip_host`. | string | **Default:** "" |
 | **enable_ipv6** | Enable IPv6 dual-stack networking. When enabled, creates additional IPv6 resources including Standard Load Balancer, IPv6 public IP, and dual-stack network interfaces. | bool | true;<br/>false;<br/>**Default:** false |
 | **vnet_ipv6_address_space** | The IPv6 address space for the virtual network. Required when enable_ipv6 is true. | string | Valid IPv6 CIDR block<br/>**Default:** "ace:cab:deca::/48" |
 | **subnet_ipv6_prefixes** | IPv6 address prefixes to be used for network subnets. Required when enable_ipv6 is true. Must contain one /64 prefix for each subnet. | list(string) | List of valid IPv6 CIDR blocks (must be /64 prefixes within the VNet IPv6 address space)<br />**Important:** Index [0] is used for the **frontend subnet**, index [1] is used for the **backend subnet**.<br/>**Default:** ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"] |

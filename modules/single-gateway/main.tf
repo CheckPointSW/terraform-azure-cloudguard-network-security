@@ -3,7 +3,7 @@ module "common" {
   source                         = "../common/common"
   resource_group_name            = var.resource_group_name
   location                       = var.location
-  is_zonal                       = var.zone != ""
+  is_zonal                       = var.zone != "" && var.extended_zone == "None"
   availability_zones_num         = "1"
   availability_zones             = var.zone == "" ? [] : [var.zone]
   admin_password                 = var.admin_password
@@ -36,6 +36,11 @@ module "network_security_group" {
 }
 
 //********************** Networking **************************//
+locals {
+  edge_zone                      = var.extended_zone != "None" ? var.extended_zone : null
+  storage_account_deployment_mode = var.extended_zone == "None" ? var.storage_account_deployment_mode : "None"
+}
+
 module "vnet" {
   depends_on = [
     module.network_security_group
@@ -53,6 +58,8 @@ module "vnet" {
   enable_ipv6                  = var.enable_ipv6
   ipv6_address_space           = var.vnet_ipv6_address_space
   subnet_ipv6_prefixes         = var.subnet_ipv6_prefixes
+  edge_zone                    = local.edge_zone
+  backend_next_hop_ip_host     = var.backend_private_ip_host
   tags                         = var.tags
 }
 
@@ -72,6 +79,7 @@ resource "azurerm_public_ip" "public_ip" {
   sku                     = var.sku
   idle_timeout_in_minutes = 30
   domain_name_label       = "${lower(var.single_gateway_name)}-${random_id.public_ip_suffix.hex}"
+  edge_zone               = local.edge_zone
   tags                    = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
 }
 
@@ -85,6 +93,7 @@ resource "azurerm_public_ip" "public_ip_v6" {
   ip_version              = "IPv6"
   idle_timeout_in_minutes = 30
   domain_name_label       = "${lower(var.single_gateway_name)}-${random_id.public_ip_suffix.hex}"
+  edge_zone               = local.edge_zone
   tags                    = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
 }
 
@@ -94,6 +103,7 @@ resource "azurerm_lb" "lb_v6" {
   location            = module.common.resource_group_location
   resource_group_name = module.common.resource_group_name
   sku                 = "Standard"
+  edge_zone           = local.edge_zone
 
   frontend_ip_configuration {
     name                 = "LB-v6"
@@ -168,13 +178,14 @@ resource "azurerm_network_interface" "nic" {
   resource_group_name           = module.common.resource_group_name
   enable_ip_forwarding          = true
   enable_accelerated_networking = true
+  edge_zone                     = local.edge_zone
 
 
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = module.vnet.subnets[0]
     private_ip_address_allocation = module.vnet.allocation_method
-    private_ip_address            = cidrhost(module.vnet.subnet_prefixes[0], 4)
+    private_ip_address            = var.frontend_private_ip != "" ? var.frontend_private_ip : cidrhost(module.vnet.subnet_prefixes[0], var.frontend_private_ip_host)
     public_ip_address_id          = azurerm_public_ip.public_ip.id
     primary                       = true
   }
@@ -209,13 +220,14 @@ resource "azurerm_network_interface" "nic1" {
   resource_group_name           = module.common.resource_group_name
   enable_ip_forwarding          = true
   enable_accelerated_networking = true
+  edge_zone                     = local.edge_zone
 
 
   ip_configuration {
     name                          = "ipconfig2"
     subnet_id                     = module.vnet.subnets[1]
     private_ip_address_allocation = module.vnet.allocation_method
-    private_ip_address            = cidrhost(module.vnet.subnet_prefixes[1], 4)
+    private_ip_address            = var.backend_private_ip != "" ? var.backend_private_ip : cidrhost(module.vnet.subnet_prefixes[1], var.backend_private_ip_host)
     primary                       = true
   }
 
@@ -236,13 +248,14 @@ resource "azurerm_network_interface" "nic1" {
 //********************** Storage accounts **************************//
 module "vm_boot_diagnostics_storage" {
   source                                       = "../common/storage-account"
-  storage_account_deployment_mode              = var.storage_account_deployment_mode
+  storage_account_deployment_mode              = local.storage_account_deployment_mode
   existing_storage_account_name                = var.existing_storage_account_name
   existing_storage_account_resource_group_name = var.existing_storage_account_resource_group_name
   resource_group_name                          = module.common.resource_group_name
   location                                     = module.common.resource_group_location
   add_storage_account_ip_rules                 = var.add_storage_account_ip_rules
   storage_account_additional_ips               = var.storage_account_additional_ips
+  storage_account_type                          = var.storage_account_type
   tags                                         = merge(lookup(var.tags, "storage-account", {}), lookup(var.tags, "all", {}))
 }
 
@@ -255,13 +268,19 @@ module "custom_image" {
   tags                 = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
+moved {
+  from = azurerm_virtual_machine.single_gateway_vm_instance
+  to   = azurerm_virtual_machine.single_gateway_vm_instance[0]
+}
+
 resource "azurerm_virtual_machine" "single_gateway_vm_instance" {
   depends_on = [
     azurerm_network_interface.nic,
     azurerm_network_interface.nic1
   ]
+  count                         = var.extended_zone == "None" ? 1 : 0
   location                      = module.common.resource_group_location
-  zones                         = var.zone == "" ? null : [var.zone]
+  zones                         = var.extended_zone == "None" ? (var.zone == "" ? null : [var.zone]) : null
   name                          = var.single_gateway_name
   network_interface_ids         = [azurerm_network_interface.nic.id, azurerm_network_interface.nic1.id]
   resource_group_name           = module.common.resource_group_name
@@ -337,6 +356,92 @@ resource "azurerm_virtual_machine" "single_gateway_vm_instance" {
     caching           = module.common.storage_os_disk_caching
     managed_disk_type = module.vm_boot_diagnostics_storage.storage_account_type
     disk_size_gb      = module.common.disk_size
+  }
+
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
+}
+
+resource "azurerm_linux_virtual_machine" "single_gateway_vm_instance_extended" {
+  depends_on = [
+    azurerm_network_interface.nic,
+    azurerm_network_interface.nic1
+  ]
+  count                           = var.extended_zone == "None" ? 0 : 1
+  location                        = module.common.resource_group_location
+  edge_zone                       = local.edge_zone
+  zone                            = null
+  name                            = var.single_gateway_name
+  computer_name                   = lower(var.single_gateway_name)
+  network_interface_ids           = [azurerm_network_interface.nic.id, azurerm_network_interface.nic1.id]
+  resource_group_name             = module.common.resource_group_name
+  size                            = module.common.vm_size
+  admin_username                  = module.common.admin_username
+  admin_password                  = module.common.admin_password
+  disable_password_authentication = module.common.SSH_authentication_type_condition
+  custom_data = base64encode(templatefile("${path.module}/cloud-init.sh", {
+    installation_type              = module.common.installation_type
+    allow_upload_download          = module.common.allow_upload_download
+    os_version                     = module.common.os_version
+    template_name                  = local.template_name
+    module_version                 = module.common.module_version
+    template_type                  = "terraform"
+    is_blink                       = local.is_blink
+    bootstrap_script64             = base64encode(var.bootstrap_script)
+    location                       = module.common.resource_group_location
+    admin_shell                    = var.admin_shell
+    sic_key                        = var.sic_key
+    management_GUI_client_network  = var.management_GUI_client_network
+    smart_1_cloud_token            = var.smart_1_cloud_token
+    enable_custom_metrics          = var.enable_custom_metrics ? "yes" : "no"
+    serial_console_password_hash   = var.serial_console_password_hash
+    maintenance_mode_password_hash = var.maintenance_mode_password_hash
+  }))
+
+  identity {
+    type = module.common.vm_instance_identity
+  }
+
+  dynamic "plan" {
+    for_each = module.custom_image.create_custom_image ? [] : [1]
+    content {
+      name      = module.common.vm_os_sku
+      publisher = module.common.publisher
+      product   = module.common.vm_os_offer
+    }
+  }
+
+  source_image_id = module.custom_image.create_custom_image ? module.custom_image.id : null
+
+  dynamic "source_image_reference" {
+    for_each = module.custom_image.create_custom_image ? [] : [1]
+    content {
+      publisher = module.common.publisher
+      offer     = module.common.vm_os_offer
+      sku       = module.common.vm_os_sku
+      version   = module.common.vm_os_version
+    }
+  }
+
+  dynamic "admin_ssh_key" {
+    for_each = module.common.SSH_authentication_type_condition ? [1] : []
+    content {
+      username   = module.common.admin_username
+      public_key = var.admin_SSH_key
+    }
+  }
+
+  dynamic "boot_diagnostics" {
+    for_each = module.vm_boot_diagnostics_storage.boot_diagnostics ? [1] : []
+    content {
+      storage_account_uri = module.vm_boot_diagnostics_storage.storage_account_primary_blob_endpoint
+    }
+  }
+
+  os_disk {
+    name                 = var.single_gateway_name
+    caching              = module.common.storage_os_disk_caching
+    storage_account_type = module.vm_boot_diagnostics_storage.storage_account_type
+    disk_size_gb         = module.common.disk_size
   }
 
   tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
