@@ -35,6 +35,22 @@ variable "location" {
   type        = string
 }
 
+variable "extended_zone" {
+  description = "Deploy in Azure Extended Zone for ultra-low latency edge computing. Use 'losangeles', 'perth', or 'None' for standard regions."
+  type        = string
+  default     = "None"
+
+  validation {
+    condition     = contains(["None", "losangeles", "perth"], var.extended_zone)
+    error_message = "Variable [extended_zone] must be one of: 'None', 'losangeles', 'perth'."
+  }
+
+  validation {
+    condition     = var.extended_zone == "None" || contains(lookup(local.extended_zone_region_map, var.extended_zone, []), var.location)
+    error_message = "Extended zone '${var.extended_zone}' is not available in region '${var.location}'. Los Angeles requires westus; Perth requires australiaeast."
+  }
+}
+
 variable "tags" {
   description = "Assign tags by resource."
   type        = map(map(string))
@@ -174,6 +190,11 @@ variable "availability_type" {
     ], var.availability_type)
     error_message = "Variable [availability_type] must be one of the following: 'Availability Zone', 'Availability Set'."
   }
+
+  validation {
+    condition     = var.extended_zone == "None" || var.availability_type != "Availability Set"
+    error_message = "Availability Sets are not supported in extended zones. Set availability_type to 'Availability Zone' when using extended_zone."
+  }
 }
 
 variable "availability_zones" {
@@ -184,6 +205,11 @@ variable "availability_zones" {
   validation {
     condition     = length(var.availability_zones) <= 2
     error_message = "The number of availability zones must be 1 or 2."
+  }
+
+  validation {
+    condition     = var.extended_zone == "None" || length(var.availability_zones) == 0
+    error_message = "Availability zones must be empty when using extended zones."
   }
 }
 
@@ -239,6 +265,24 @@ variable "subnet_prefixes" {
   default     = ["10.0.0.0/24", "10.0.1.0/24"]
 }
 
+variable "frontend_private_ip_start_host" {
+  description = "Starting host number in frontend subnet for member A. Member B uses +1 and cluster VIP uses +2."
+  type        = number
+  default     = 5
+}
+
+variable "backend_private_ip_start_host" {
+  description = "Starting host number in backend subnet for member A. Member B uses +1."
+  type        = number
+  default     = 5
+}
+
+variable "backend_lb_private_ip_host" {
+  description = "Host number in backend subnet used by backend load balancer frontend IP configuration."
+  type        = number
+  default     = 4
+}
+
 variable "nsg_id" {
   description = "(Optional) The Network Security Group ID."
   type        = string
@@ -249,6 +293,22 @@ variable "storage_account_deployment_mode" {
   description = "The deployment mode for the storage account. Options are 'New', 'Existing', 'Managed' and 'None'. If 'Existing', the storage account must be specified in the variable 'existing_storage_account_id'."
   type        = string
   default     = "New"
+}
+
+variable "storage_account_type" {
+  description = "Storage account type for managed disks. Valid options are Standard_LRS and Premium_LRS."
+  type        = string
+  default     = "Standard_LRS"
+
+  validation {
+    condition     = contains(["Standard_LRS", "Premium_LRS"], var.storage_account_type)
+    error_message = "Variable [storage_account_type] must be one of 'Standard_LRS', 'Premium_LRS'."
+  }
+
+  validation {
+    condition     = var.extended_zone == "None" || var.storage_account_type == "Premium_LRS"
+    error_message = "Extended zone deployments require storage_account_type to be 'Premium_LRS'."
+  }
 }
 
 variable "add_storage_account_ip_rules" {
@@ -353,6 +413,11 @@ variable "use_public_ip_prefix" {
   description = "Indicates whether the public IP resources will be deployed with public IP prefix."
   type        = bool
   default     = false
+
+  validation {
+    condition     = var.extended_zone == "None" || !var.use_public_ip_prefix
+    error_message = "Public IP prefix (use_public_ip_prefix) is not supported in extended zone deployments."
+  }
 }
 
 variable "create_public_ip_prefix" {

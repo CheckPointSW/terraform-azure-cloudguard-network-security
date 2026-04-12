@@ -6,6 +6,7 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = var.enable_ipv6 ? concat([var.address_space], [var.ipv6_address_space]) : [var.address_space]
   resource_group_name = var.resource_group_name
   dns_servers         = var.dns_servers
+  edge_zone           = var.edge_zone
   tags                = merge(lookup(var.tags, "virtual-network", {}), lookup(var.tags, "all", {}))
 }
 
@@ -97,7 +98,7 @@ resource "azurerm_route_table" "backend" {
       name                   = "To-Internet"
       address_prefix         = "0.0.0.0/0"
       next_hop_type          = local.next_hop_type_allowed_values[3]
-      next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[1].address_prefixes[0], 4)
+      next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[1].address_prefixes[0], var.backend_next_hop_ip_host)
     }
   }
   dynamic "route" {

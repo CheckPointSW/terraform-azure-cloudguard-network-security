@@ -35,6 +35,22 @@ variable "location" {
   type        = string
 }
 
+variable "extended_zone" {
+  description = "Deploy in Azure Extended Zone for ultra-low latency edge computing. Use 'losangeles', 'perth', or 'None' for standard regions."
+  type        = string
+  default     = "None"
+
+  validation {
+    condition     = contains(["None", "losangeles", "perth"], var.extended_zone)
+    error_message = "Variable [extended_zone] must be one of: 'None', 'losangeles', 'perth'."
+  }
+
+  validation {
+    condition     = var.extended_zone == "None" || contains(lookup(local.extended_zone_region_map, var.extended_zone, []), var.location)
+    error_message = "Extended zone '${var.extended_zone}' is not available in region '${var.location}'. Los Angeles requires westus; Perth requires australiaeast."
+  }
+}
+
 variable "tags" {
   description = "Assign tags by resource."
   type        = map(map(string))
@@ -174,6 +190,11 @@ variable "zone" {
   description = "The availability zone to use for the Virtual Machine. Changing this forces a new resource to be created."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.extended_zone == "None" || var.zone == ""
+    error_message = "Variable [zone] must be empty when using extended zones."
+  }
 }
 
 //********************** Smart-1 Cloud Variables **************************//
@@ -219,7 +240,7 @@ variable "backend_subnet_name" {
 variable "address_space" {
   description = "The address space that is used by a Virtual Network."
   type        = string
-  default     = "10.12.0.0/16"
+  default     = "10.0.0.0/16"
 }
 
 variable "subnet_prefixes" {
@@ -228,10 +249,49 @@ variable "subnet_prefixes" {
   default     = ["10.0.0.0/24", "10.0.1.0/24"]
 }
 
+variable "frontend_private_ip_host" {
+  description = "Host number in frontend subnet for eth0 private IP."
+  type        = number
+  default     = 4
+}
+
+variable "frontend_private_ip" {
+  description = "Optional explicit private IPv4 address for eth0. If empty, the address is derived from frontend_private_ip_host and the frontend subnet prefix."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.frontend_private_ip == "" || can(cidrhost("${var.frontend_private_ip}/32", 0))
+    error_message = "Variable [frontend_private_ip] must be empty or a valid IPv4 address."
+  }
+}
+
+variable "backend_private_ip_host" {
+  description = "Host number in backend subnet for eth1 private IP."
+  type        = number
+  default     = 4
+}
+
+variable "backend_private_ip" {
+  description = "Optional explicit private IPv4 address for eth1. If empty, the address is derived from backend_private_ip_host and the backend subnet prefix."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.backend_private_ip == "" || can(cidrhost("${var.backend_private_ip}/32", 0))
+    error_message = "Variable [backend_private_ip] must be empty or a valid IPv4 address."
+  }
+}
+
 variable "enable_ipv6" {
   description = "Enable IPv6 dual-stack networking support."
   type        = bool
   default     = false
+
+  validation {
+    condition     = var.extended_zone == "None" || !var.enable_ipv6
+    error_message = "Extended zone deployments do not currently support IPv6, so enable_ipv6 must be false when extended_zone is set."
+  }
 }
 
 variable "vnet_ipv6_address_space" {
@@ -256,6 +316,22 @@ variable "storage_account_deployment_mode" {
   description = "The deployment mode for the storage account. Options are 'New', 'Existing', 'Managed' and 'None'. If 'Existing', the storage account must be specified in the variable 'existing_storage_account_id'."
   type        = string
   default     = "New"
+}
+
+variable "storage_account_type" {
+  description = "Storage account type for managed disks. Valid options are Standard_LRS and Premium_LRS."
+  type        = string
+  default     = "Standard_LRS"
+
+  validation {
+    condition     = contains(["Standard_LRS", "Premium_LRS"], var.storage_account_type)
+    error_message = "Variable [storage_account_type] must be one of 'Standard_LRS', 'Premium_LRS'."
+  }
+
+  validation {
+    condition     = var.extended_zone == "None" || var.storage_account_type == "Premium_LRS"
+    error_message = "Extended zone deployments require storage_account_type to be 'Premium_LRS'."
+  }
 }
 
 variable "add_storage_account_ip_rules" {

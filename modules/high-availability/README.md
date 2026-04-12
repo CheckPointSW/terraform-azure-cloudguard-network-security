@@ -41,6 +41,7 @@ module "example_module" {
   resource_group_name = "checkpoint-ha-terraform"
   cluster_name        = "checkpoint-ha-terraform"
   location            = "eastus"
+  extended_zone       = "None"
   tags                = {}
 
   # Virtual Machine Instances Variables
@@ -74,6 +75,7 @@ module "example_module" {
   subnet_prefixes                 = ["10.0.1.0/24", "10.0.2.0/24"]
   nsg_id                          = ""
   storage_account_deployment_mode = "New"
+  storage_account_type            = "Standard_LRS"
   add_storage_account_ip_rules    = false
   storage_account_additional_ips  = []
   vips_names                      = []
@@ -84,6 +86,29 @@ module "example_module" {
   create_public_ip_prefix      = false
   existing_public_ip_prefix_id = ""
 }
+```
+
+## Extended Zone Support
+This module supports Azure Extended Zones through the `extended_zone` variable.
+
+- Supported values: `None`, `losangeles`, `perth`.
+- Region mapping:
+  - `losangeles` requires `location = "westus"`
+  - `perth` requires `location = "australiaeast"`
+- When `extended_zone` is not `None`:
+  - `availability_type` must be `"Availability Zone"`
+  - `availability_zones` must be an empty list (`[]`)
+  - `storage_account_type` must be `"Premium_LRS"`
+  - `use_public_ip_prefix` must be `false` (public IP prefix is not supported)
+  - Boot diagnostics storage account deployment mode is forced to `None` internally
+
+Extended zone example:
+```hcl
+location             = "westus"
+extended_zone        = "losangeles"
+availability_type    = "Availability Zone"
+availability_zones   = []
+storage_account_type = "Premium_LRS"
 ```
 
 ## Conditional creation
