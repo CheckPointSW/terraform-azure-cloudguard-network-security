@@ -56,7 +56,7 @@ module "example_module" {
   serial_console_password_hash   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   maintenance_mode_password_hash = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   vm_size                        = "Standard_D4ds_v5"
-  disk_size                      = "100"
+  disk_size                      = "200"
   os_version                     = "R82"
   vm_os_sku                      = "sg-byol"
   vm_os_offer                    = "check-point-cg-r82"
@@ -137,7 +137,7 @@ module "example_module" {
   serial_console_password_hash   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   maintenance_mode_password_hash = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   vm_size                        = "Standard_D4ds_v5"
-  disk_size                      = "100"
+  disk_size                      = "200"
   os_version                     = "R82"
   vm_os_sku                      = "sg-byol"
   vm_os_offer                    = "check-point-cg-r82"
@@ -335,7 +335,7 @@ For more information, refer to the official - [Checkout the Azure Terraform docu
 | **serial_console_password_hash** | (Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication. | string | **Default:** "" |
 | **maintenance_mode_password_hash** | (Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | **Default:** "" |
 | **vm_size** | Specifies the size of Virtual Machine. | string | A list of valid VM sizes (e.g., "Standard_D4ds_v5", "Standard_D8ds_v5", etc). |
-| **disk_size** | Storage data disk size (GB) must be 100 for versions R81.20 and below. | string | A number in the range 100 - 3995 (GB).<br />**Default:** 100 |
+| **disk_size** | Storage data disk size (GB) must be 100 for versions R81.20 and below. | string | A number in the range 100 - 3995 (GB).<br />**Default:** 200 |
 | **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210";<br />|
 | **vm_os_sku** | A SKU of the image to be deployed. | string | "sg-byol" - BYOL license;<br />"sg-ngtp" - NGTP PAYG license;<br />"sg-ngtx" - NGTX PAYG license; |
 | **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210"; |

@@ -240,6 +240,7 @@ variable "vm_os_version" {
 variable "disk_size" {
   description = "Storage data disk size size(GB). Select a number between 100 and 3995"
   type        = string
+  default     = "200"
 
   validation {
     condition     = can(tonumber(var.disk_size)) && tonumber(var.disk_size) >= 100 && tonumber(var.disk_size) <= 3995

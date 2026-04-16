@@ -140,6 +140,7 @@ variable "vm_size" {
 variable "disk_size" {
   description = "Storage data disk size size(GB). Select a number between 100 and 3995."
   type        = string
+  default     = "200"
 }
 
 variable "os_version" {
