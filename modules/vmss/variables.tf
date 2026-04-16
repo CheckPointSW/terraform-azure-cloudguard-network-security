@@ -109,12 +109,7 @@ variable "vm_size" {
 variable "disk_size" {
   description = "Storage data disk size size (GB). Select a number between 100 and 3995."
   type        = string
-  default     = "100"
-
-  validation {
-    condition     = tonumber(var.disk_size) != 100 && contains(["R8110", "R8120"], var.os_version) ? false : true
-    error_message = "Variable [disk_size] cannot be changed if the OS version is R81.20 or below."
-  }
+  default     = "200"
 }
 
 variable "os_version" {
