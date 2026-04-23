@@ -120,9 +120,10 @@ variable "os_version" {
     condition = contains([
       "R8110",
       "R8120",
-      "R82"
+      "R82",
+      "R8210"
     ], var.os_version)
-    error_message = "Variable [os_version] must be one of the following: 'R8110', 'R8120', 'R82'."
+    error_message = "Variable [os_version] must be one of the following: 'R8110', 'R8120', 'R82', 'R8210'."
   }
 }
 
