@@ -338,7 +338,7 @@ variable "plan_product" {
 variable "plan_version" {
   description = "Use the latest version of the managed application (e.g., 1.0.27) for best results. Full version list: https://support.checkpoint.com/results/sk/sk132192."
   type        = string
-  default     = "1.0.27"
+  default     = "1.0.28"
 }
 
 variable "custom_license_type" {
