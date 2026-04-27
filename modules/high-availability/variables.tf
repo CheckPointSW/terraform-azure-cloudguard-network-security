@@ -12,12 +12,14 @@ variable "tenant_id" {
 variable "client_id" {
   description = "Application ID(Client ID)"
   type        = string
+  default     = null
 }
 
 variable "client_secret" {
   description = "A secret string that the application uses to prove its identity when requesting a token. Also can be referred to as application password."
   type        = string
   sensitive   = true
+  default     = null
 }
 
 variable "resource_group_name" {
