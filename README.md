@@ -18,26 +18,20 @@ This repository provides a structured set of Terraform modules for deploying Che
 
  
 **Submodules:**
-* [`high_availability_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/high_availability_existing_vnet) - Deploys CloudGuard High Availability solution into an existing VNet in azure.
-* [`high_availability_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/high_availability_new_vnet) Deploys CloudGuard High Availability solution into a new VNet.
-* [`management_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/management_existing_vnet) - Deploys CloudGuard Management solution into an existing VNet.
-* [`management_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/management_new_vnet) - Deploys CloudGuard Management solution into a new VNet
-* [`mds_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/mds_existing_vnet) - Deploys CloudGuard Management solution into a new VNet.
-* [`mds_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/mds_new_vnet) - Deploys CloudGuard Management solution into a new VNet.
-* [`nva_into_existing_hub`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/nva_into_existing_hub) - Deploys CloudGuard Virtual WAN NVA solution into an existing vWAN Hub.
-* [`nva_into_new_vwan`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/nva_into_new_vwan) - Deploys CloudGuard Virtual WAN NVA solution into a new vWAN Hub.
-* [`single_gateway_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/single_gateway_existing_vnet) - Deploys CloudGuard Single Gateway solution into an existing VNet.
-* [`single_gateway_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/single_gateway_new_vnet) - Deploys CloudGuard Single Gateway solution into a new VNet.                   
-* [`vmss_existing_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/vmss_existing_vnet) - Deploys CloudGuard VMSS solution into an existing VNet.
-* [`vmss_new_vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/vmss_new_vnet) - Deploys CloudGuard VMSS solution into a new VNet.
+* [`high-availability`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/high-availability) - Deploys CloudGuard High Availability solution.
+* [`management`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/management) - Deploys CloudGuard Management solution.
+* [`mds`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/mds) - Deploys CloudGuard Multi-Domain Security Management solution.
+* [`nva`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/nva) - Deploys CloudGuard Virtual WAN NVA solution.
+* [`single-gateway`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/single-gateway) - Deploys CloudGuard Single Gateway solution.
+* [`vmss`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/vmss) - Deploys CloudGuard VMSS solution.
 
-Internal Submodules - 
-
+Internal Submodules:
 * [`common`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/common) - Contains shared configurations and reusable components for all modules.
-
-* [`network_security_group`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/network_security_group) - Manages Network Security Groups (NSGs) with CloudGuard-specific rules.
-
-- [`vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/vnet) - Simplifies Virtual Network and subnet configurations.
+* [`custom-image`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/custom-image) - Manages custom image configurations.
+* [`network-security-group`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/network-security-group) - Manages Network Security Groups (NSGs) with CloudGuard-specific rules.
+* [`storage-account`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/storage-account) - Manages storage account configurations.
+* [`vnet`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/vnet) - Simplifies Virtual Network and subnet configurations.
+* [`vwan`](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest/submodules/vwan) - Manages Virtual WAN configurations.
 
 
 ## Security Rules Default Configuration
@@ -67,8 +61,16 @@ security_rules = [
 
 # Best Practices for Using CloudGuard Modules
 
-## Step 1: Use the Required Module
-Add the required module in your Terraform configuration file (`main.tf`) to deploy resources. For example:
+## Prerequisites
+- [Terraform](https://www.terraform.io/downloads.html) version 1.9 or higher
+- Azure Service Principal with required permissions (see [Required Permissions](#required-permissions) below)
+
+---
+
+## Deployment Steps
+
+### 1. Configure Your Terraform Module
+Create a `main.tf` file with the required module and **mandatory authentication variables**:
 
 ```hcl
 provider "azurerm" {
@@ -77,72 +79,49 @@ provider "azurerm" {
 
 module "example_module" {
   source  = "CheckPointSW/cloudguard-network-security/azure//modules/{module_name}"
-  version = "{chosen_version}"
-  # Add the required inputs
+  version = "~> 1.0"
+
+  # Authentication Variables (Required)
+  client_secret   = "<your-client-secret>"
+  client_id       = "<your-client-id>"
+  tenant_id       = "<your-tenant-id>"
+  subscription_id = "<your-subscription-id>"
+
+  # Add additional module-specific variables here
 }
 ```
----
 
-## Step 2: Open the Terminal
-Ensure you have [Azure CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and navigate to the directory where your `main.tf` file is located, using the appropriate terminal: 
-
-- **Linux/macOS**: **Terminal**.
-- **Windows**: **PowerShell** or **Command Prompt**.
+**Important:** All four authentication variables (`client_secret`, `client_id`, `tenant_id`, `subscription_id`) are mandatory for all modules.
 
 ---
 
-## Step 3: Set Environment Variables and Log in with Azure CLI
-Set the required environment variables and authenticate with Azure using your Service Principal. Then, select the correct subscription.
+### 2. Initialize and Deploy
+Run the following Terraform commands to deploy your resources:
 
-### Linux/macOS
-```hcl
-export TF_VAR_client_id="{your-client-id}"
-export TF_VAR_client_secret="{your-client-secret}"
-export TF_VAR_subscription_id="{your-subscription-id}"
-export TF_VAR_tenant_id="{your-tenant-id}"
-
-az login --service-principal -u $TF_VAR_client_id -p $TF_VAR_client_secret --tenant $TF_VAR_tenant_id
-az account set --subscription $TF_VAR_subscription_id
-```
-### PowerShell (Windows)
-```hcl
-$env:TF_VAR_client_id="{your-client-id}"
-$env:TF_VAR_client_secret="{your-client-secret}"
-$env:TF_VAR_subscription_id="{your-subscription-id}"
-$env:TF_VAR_tenant_id="{your-tenant-id}"
-
-az login --service-principal -u $env:TF_VAR_client_id -p $env:TF_VAR_client_secret --tenant $env:TF_VAR_tenant_id
-az account set --subscription $env:TF_VAR_subscription_id
-```
-### Command Prompt (Windows)
-```hcl
-set TF_VAR_client_id="{your-client-id}"
-set TF_VAR_client_secret="{your-client-secret}"
-set TF_VAR_subscription_id="{your-subscription-id}"
-set TF_VAR_tenant_id="{your-tenant-id}"
-
-az login --service-principal -u %TF_VAR_client_id% -p %TF_VAR_client_secret% --tenant %TF_VAR_tenant_id%
-az account set --subscription %TF_VAR_subscription_id%
-```
----
-
-
-## Step 4: Deploy with Terraform
-Use Terraform commands to deploy resources securely.
-
-### Initialize Terraform
-Prepare the working directory and download required provider plugins:
-```hcl
+```bash
+# Initialize Terraform and download providers
 terraform init
-```
 
-### Plan Deployment
-Preview the changes Terraform will make:
-```hcl
+# Preview the changes
 terraform plan
-```
-### Apply Deployment
-Apply the planned changes and deploy the resources:
-```hcl
+
+# Apply the configuration
 terraform apply
 ```
+
+---
+ 
+## Required Permissions
+
+The Azure Service Principal used for authentication must have the following permissions:
+
+- **Contributor** role - for creating and managing Azure resources
+- **User Access Administrator** role - for role assignments (required for VMSS deployments)
+- For additional roles and permissions, see [Azure Built-in Roles](https://learn.microsoft.com/he-il/azure/role-based-access-control/built-in-roles)
+
+For detailed information on creating a Service Principal and assigning roles, refer to:
+- [Azure Service Principal Documentation](https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal)
+- [Azure RBAC Role Assignments](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal)
+- [Terraform Azure Provider Authentication](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret)
+
+---
