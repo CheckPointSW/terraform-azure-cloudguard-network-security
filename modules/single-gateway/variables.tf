@@ -146,6 +146,10 @@ variable "disk_size" {
 variable "os_version" {
   description = "GAIA OS version."
   type        = string
+  validation {
+    condition     = var.extended_zone == "None" || var.os_version != "R8110"
+    error_message = "Extended Zones are not supported for R81.10 (R8110). Please use a higher version or set extended_zone to 'None'."
+  }
 }
 
 variable "vm_os_sku" {
