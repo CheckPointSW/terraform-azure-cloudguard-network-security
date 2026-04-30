@@ -1,17 +1,17 @@
 output "resource_group_name" {
-  value = azurerm_resource_group.resource_group.name
+  value = local.resource_group.name
 }
 
 output "resource_group_id" {
-  value = azurerm_resource_group.resource_group.id
+  value = local.resource_group.id
 }
 
 output "resource_group_location" {
-  value = azurerm_resource_group.resource_group.location
+  value = local.resource_group.location
 }
 
 output "azurerm_resource_group_id" {
-  value = azurerm_resource_group.resource_group.id
+  value = local.resource_group.id
 }
 
 output "admin_username" {
