@@ -207,6 +207,7 @@ variable "smart_1_cloud_token" {
   description = "Smart-1 Cloud Token."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 //********************** Management Variables **************************//

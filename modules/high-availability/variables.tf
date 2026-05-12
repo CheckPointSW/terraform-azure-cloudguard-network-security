@@ -223,12 +223,14 @@ variable "smart_1_cloud_token_a" {
   description = "Smart-1 Cloud Token, for configuring member A."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "smart_1_cloud_token_b" {
   description = "Smart-1 Cloud Token, for configuring member B."
   type        = string
   default     = ""
+  sensitive   = true
 
   validation {
     condition     = var.smart_1_cloud_token_b != "" && var.smart_1_cloud_token_a != "" ? true : var.smart_1_cloud_token_b == "" && var.smart_1_cloud_token_a == ""

@@ -212,6 +212,7 @@ variable "maintenance_mode_password_hash" {
   description = "(Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions."
   type        = string
   default     = ""
+  sensitive   = true
 }
 
 variable "bgp_asn" {
