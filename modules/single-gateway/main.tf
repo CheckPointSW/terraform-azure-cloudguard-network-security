@@ -358,7 +358,7 @@ resource "azurerm_virtual_machine" "single_gateway_vm_instance" {
     disk_size_gb      = module.common.disk_size
   }
 
-  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}), { LegacyVMNVA = "" })
 }
 
 resource "azurerm_linux_virtual_machine" "single_gateway_vm_instance_extended" {
@@ -444,5 +444,5 @@ resource "azurerm_linux_virtual_machine" "single_gateway_vm_instance_extended" {
     disk_size_gb         = module.common.disk_size
   }
 
-  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}), { LegacyVMNVA = "" })
 }

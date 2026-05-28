@@ -208,5 +208,5 @@ resource "azurerm_virtual_machine" "mds_vm_instance" {
     disk_size_gb      = module.common.disk_size
   }
 
-  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}), { LegacyVMNVA = "" })
 }
