@@ -490,7 +490,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
     }
   }
 
-  tags = merge(lookup(var.tags, "virtual-machine-scale-set", {}), lookup(var.tags, "all", {}), local.vmss_tags)
+  tags = merge(lookup(var.tags, "virtual-machine-scale-set", {}), lookup(var.tags, "all", {}), local.vmss_tags, { LegacyVMNVA = "" })
 }
 
 resource "azurerm_monitor_autoscale_setting" "vmss_settings" {

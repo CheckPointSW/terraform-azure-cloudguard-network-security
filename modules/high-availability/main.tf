@@ -455,7 +455,7 @@ resource "azurerm_virtual_machine" "vm_instance_availability_set" {
     storage_uri = module.vm_boot_diagnostics_storage.storage_account_primary_blob_endpoint
   }
 
-  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}), { LegacyVMNVA = "" })
 }
 
 resource "azurerm_virtual_machine" "vm_instance_availability_zone" {
@@ -552,7 +552,7 @@ resource "azurerm_virtual_machine" "vm_instance_availability_zone" {
     storage_uri = module.vm_boot_diagnostics_storage.storage_account_primary_blob_endpoint
   }
 
-  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}), { LegacyVMNVA = "" })
 }
 
 resource "azurerm_linux_virtual_machine" "vm_instance_availability_zone_extended" {
@@ -651,7 +651,7 @@ resource "azurerm_linux_virtual_machine" "vm_instance_availability_zone_extended
     }
   }
 
-  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}))
+  tags = merge(lookup(var.tags, "virtual-machine", {}), lookup(var.tags, "all", {}), { LegacyVMNVA = "" })
 }
 
 //********************** Role Assigments **************************//
