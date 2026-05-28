@@ -103,6 +103,66 @@ locals {
       description                = "Allow security gateways to fetch policy"
       source_address_prefix      = "*"
       destination_address_prefix = "*"
+    },
+    {
+      name                       = "SmartViewLogs"
+      priority                   = "180"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "8211"
+      description                = "Allow Log Server communication"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "SecureInternalCommunication"
+      priority                   = "190"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18209"
+      description                = "Allow secured internal communication"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "AMONApplicationMonitoring"
+      priority                   = "200"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18192"
+      description                = "Allow inbound AMON application monitoring communication"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "ICA-push"
+      priority                   = "210"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18211"
+      description                = "Allow to accept ICA SIC certificate"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "MGMTStandBySynchronization"
+      priority                   = "220"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18221"
+      description                = "Allow inbound management HA standby synchronization communication"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
     }
   ]
 
@@ -110,7 +170,7 @@ locals {
   nsg_ipv6_rules = var.enable_ipv6 && var.management_GUI_client_network_ipv6 != "" ? [
     {
       name                       = "SSH-IPv6"
-      priority                   = "200"
+      priority                   = "240"
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
@@ -122,7 +182,7 @@ locals {
     },
     {
       name                       = "GAiA-portal-IPv6"
-      priority                   = "210"
+      priority                   = "250"
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
@@ -134,7 +194,7 @@ locals {
     },
     {
       name                       = "SmartConsole-1-IPv6"
-      priority                   = "220"
+      priority                   = "260"
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
@@ -146,7 +206,7 @@ locals {
     },
     {
       name                       = "SmartConsole-2-IPv6"
-      priority                   = "230"
+      priority                   = "270"
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"

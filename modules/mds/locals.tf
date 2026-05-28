@@ -99,6 +99,66 @@ locals {
       description                = "Allow security gateways to fetch policy"
       source_address_prefix      = "*"
       destination_address_prefix = "*"
+    },
+    {
+      name                       = "SmartViewLogs"
+      priority                   = "180"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "8211"
+      description                = "Allow Log Server communication"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "SecureInternalCommunication"
+      priority                   = "190"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18209"
+      description                = "Allow secured internal communication"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "AMONApplicationMonitoring"
+      priority                   = "200"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18192"
+      description                = "Allow inbound AMON application monitoring communication"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "ICA-push"
+      priority                   = "210"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18211"
+      description                = "Allow to accept ICA SIC certificate"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "MGMTStandBySynchronization"
+      priority                   = "220"
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_ranges         = "*"
+      destination_port_ranges    = "18221"
+      description                = "Allow inbound management HA standby synchronization communication"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
     }
   ]
 }
