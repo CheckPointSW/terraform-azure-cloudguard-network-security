@@ -19,7 +19,8 @@ output "admin_username" {
 }
 
 output "admin_password" {
-  value = var.admin_password
+  value     = var.admin_password
+  sensitive = true
 }
 
 output "vm_instance_identity" {
