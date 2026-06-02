@@ -2,6 +2,7 @@
 module "common" {
   source                         = "../common/common"
   resource_group_name            = var.resource_group_name
+  resource_group_create          = var.resource_group_create
   location                       = var.location
   is_zonal                       = var.availability_zones_num != "0"
   availability_zones_num         = var.availability_zones_num

@@ -1,7 +1,13 @@
 resource "azurerm_resource_group" "resource_group" {
+  count    = var.resource_group_create ? 1 : 0
   name     = var.resource_group_name
   location = var.location
   tags     = var.tags
+}
+
+data "azurerm_resource_group" "existing_resource_group" {
+  count    = var.resource_group_create ? 0 : 1
+  name = var.resource_group_name
 }
 
 module "regions" {
