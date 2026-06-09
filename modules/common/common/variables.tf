@@ -1,13 +1,35 @@
 //************** Basic config variables**************//
 variable "resource_group_name" {
-  description = "Azure Resource Group name to build into"
+  description = "Azure Resource Group name. Required when create_resource_group=true (sets the name of the new RG). Ignored when create_resource_group=false — the name is derived from resource_group_id, which is the authoritative reference."
   type        = string
+  default     = ""
+
+  validation {
+    condition     = !var.create_resource_group || var.resource_group_name != ""
+    error_message = "resource_group_name is required when create_resource_group=true."
+  }
+
+  validation {
+    condition     = var.resource_group_name == "" || (can(regex("^[A-Za-z0-9._()-]{1,90}$", var.resource_group_name)) && !endswith(var.resource_group_name, "."))
+    error_message = "Variable [resource_group_name] must be 1-90 characters, contain only alphanumerics, underscores, hyphens, periods and parentheses, and must not end with a period."
+  }
+}
+
+variable "create_resource_group" {
+  description = "Controls whether a new Azure Resource Group should be created or an existing one should be used. Set to false to use a pre-existing resource group; resource_group_id must be provided."
+  type        = bool
+  default     = true
 }
 
 variable "resource_group_id" {
-  description = "Azure Resource Group ID to use."
+  description = "Azure Resource Group ID. Required when create_resource_group=false (both for pre-existing RG and same-apply deployments). When provided, resource_group_name can be omitted."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.create_resource_group || var.resource_group_id != ""
+    error_message = "resource_group_id is required when create_resource_group=false."
+  }
 }
 
 variable "location" {

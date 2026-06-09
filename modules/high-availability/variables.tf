@@ -28,6 +28,11 @@ variable "resource_group_name" {
 variable "cluster_name" {
   description = "Cluster name."
   type        = string
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9]([A-Za-z0-9-]{0,62}[A-Za-z0-9])?$", var.cluster_name))
+    error_message = "Variable [cluster_name] must be 1-64 characters, contain only alphanumerics and hyphens, and must not start or end with a hyphen."
+  }
 }
 
 variable "location" {

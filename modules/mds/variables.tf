@@ -28,6 +28,11 @@ variable "resource_group_name" {
 variable "mds_name" {
   description = "MDS name."
   type        = string
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9]([A-Za-z0-9-]{0,62}[A-Za-z0-9])?$", var.mds_name))
+    error_message = "Variable [mds_name] must be 1-64 characters, contain only alphanumerics and hyphens, and must not start or end with a hyphen."
+  }
 }
 
 variable "location" {
@@ -208,12 +213,13 @@ variable "subnet_prefix" {
 }
 
 variable "management_GUI_client_network" {
-  description = "Allowed GUI clients - GUI clients network CIDR."
+  description = "Allowed GUI clients - GUI clients network CIDR. Use '0.0.0.0/0' to allow access from any IPv4 address."
   type        = string
+  default     = "0.0.0.0/0"
 
   validation {
-    condition     = can(regex("(^0\\.0\\.0\\.0\\/0$)|(^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/32)?$)", var.management_GUI_client_network)) && var.management_GUI_client_network != "0.0.0.0/32"
-    error_message = "Variable [management_GUI_client_network] must be a valid IPv4 network CIDR."
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))$", var.management_GUI_client_network))
+    error_message = "Variable [management_GUI_client_network] must be a valid IPv4 network CIDR (e.g. '0.0.0.0/0' for any)."
   }
 }
 
@@ -276,7 +282,7 @@ variable "sku" {
 }
 
 variable "security_rules" {
-  description = "Security rules for the Network Security Group using this format [name, priority, direction, access, protocol, source_source_port_rangesport_range, destination_port_ranges, source_address_prefix, destination_address_prefix, description]."
+  description = "Additional security rules for the Network Security Group using this format [name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description]."
   type        = list(any)
   default     = []
 }

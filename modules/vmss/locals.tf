@@ -3,6 +3,9 @@ locals {
   module_version = "1.0.9"
   template_name  = var.enable_ipv6 ? "vmss_terraform_registry_dual_stack" : "vmss_terraform_registry"
 
+  create_frontend_lb = contains(["Standard", "External"], var.deployment_mode)
+  create_backend_lb  = contains(["Standard", "Internal"], var.deployment_mode)
+
   // Validate that the minimum number of VM instances is at least 0.
   // If not, return an error message.
   validate_number_of_vm_instances_range = var.minimum_number_of_vm_instances >= 0 && var.maximum_number_of_vm_instances >= 0 ? 0 : index("error: The minimum and maximum number of VM instances must be at least 0.")

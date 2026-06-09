@@ -20,7 +20,12 @@ variable "tags" {
   default     = {}
 }
 
-//********************* Use Existing NSG **************************//
+variable "enable_nsg" {
+  description = "Controls whether a Network Security Group is created or used. Set to false to skip NSG entirely."
+  type        = bool
+  default     = true
+}
+
 variable "nsg_id" {
   description = "If you want to use an existing Network Security Group, provide the ID here"
   type        = string

@@ -26,7 +26,7 @@ resource "azurerm_subnet_network_security_group_association" "security_group_fro
     azurerm_virtual_network.vnet,
     azurerm_subnet.subnet[0]
   ]
-  count                     = local.create_new_vnet ? 1 : 0
+  count                     = local.create_new_vnet && var.enable_nsg ? 1 : 0
   subnet_id                 = azurerm_subnet.subnet[0].id
   network_security_group_id = var.nsg_id
 }
@@ -36,7 +36,7 @@ resource "azurerm_subnet_network_security_group_association" "security_group_bac
     azurerm_virtual_network.vnet,
     azurerm_subnet.subnet[1]
   ]
-  count                     = local.create_new_vnet ? (length(var.subnet_names) >= 2 ? 1 : 0) : 0
+  count                     = local.create_new_vnet && var.enable_nsg ? (length(var.subnet_names) >= 2 ? 1 : 0) : 0
   subnet_id                 = azurerm_subnet.subnet[1].id
   network_security_group_id = var.nsg_id
 }

@@ -28,6 +28,11 @@ variable "resource_group_name" {
 variable "mgmt_name" {
   description = "Management name."
   type        = string
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9]([A-Za-z0-9-]{0,62}[A-Za-z0-9])?$", var.mgmt_name))
+    error_message = "Variable [mgmt_name] must be 1-64 characters, contain only alphanumerics and hyphens, and must not start or end with a hyphen."
+  }
 }
 
 variable "location" {
@@ -49,7 +54,7 @@ variable "source_image_vhd_uri" {
 }
 
 variable "admin_username" {
-  description = "Administrator username of deployed VM. Due to Azure limitations 'notused' name can be used."
+  description = "Administrator username of deployed VM. Due to Azure limitations 'notused' name can be used. Currently accepted for backward compatibility; the value supplied here is ignored and the shared common module's username is used instead."
   type        = string
   default     = "notused"
 }
@@ -105,6 +110,7 @@ variable "disk_size" {
 variable "os_version" {
   description = "GAIA OS version."
   type        = string
+  default     = "R82"
 }
 
 variable "vm_os_sku" {
@@ -188,12 +194,13 @@ variable "subnet_ipv6_prefix" {
 }
 
 variable "management_GUI_client_network" {
-  description = "Allowed GUI clients - GUI clients network CIDR or '*' for any."
+  description = "Allowed GUI clients - GUI clients network CIDR. Use '0.0.0.0/0' to allow access from any IPv4 address."
   type        = string
+  default     = "0.0.0.0/0"
 
   validation {
-    condition     = var.management_GUI_client_network == "*" || can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))$", var.management_GUI_client_network))
-    error_message = "Variable [management_GUI_client_network] must be a valid IPv4 network CIDR or '*'."
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))$", var.management_GUI_client_network))
+    error_message = "Variable [management_GUI_client_network] must be a valid IPv4 network CIDR (e.g. '0.0.0.0/0' for any)."
   }
 }
 
@@ -267,7 +274,7 @@ variable "sku" {
 }
 
 variable "security_rules" {
-  description = "Security rules for the Network Security Group using this format [name, priority, direction, access, protocol, source_source_port_rangesport_range, destination_port_ranges, source_address_prefix, destination_address_prefix, description]."
+  description = "Additional security rules for the Network Security Group using this format [name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description]."
   type        = list(any)
   default     = []
 }

@@ -1,12 +1,12 @@
 # Check Point CloudGuard Management Module
-This Terraform module deploys Check Point CloudGuard Network Security Management solution in azure.
-As part of the deployment the following resources are created:
+This Terraform module deploys Check Point CloudGuard Network Security Management solution in Azure.
+As part of the deployment the following resources can optionally be created (you can also choose to deploy with an existing Virtual Network):
 - Resource group
-- Virtual network
-- Network security group
+- Virtual network (optional — can use an existing one)
+- Network security group (optional — can use an existing one)
 - Virtual Machine
 - System assigned identity
-- Storage account
+- Storage account (optional — "New", "Existing", "Managed" or "None")
 
 This solution uses the following submodules:
 - common - used for creating a resource group and defining common variables.
@@ -87,7 +87,7 @@ provider "azurerm" {
 
 module "example_module" {
   source  = "CheckPointSW/cloudguard-network-security/azure//modules/management"
-  version = "1.0.6"
+  version = "~> 1.0"
 
   # Authentication Variables
   client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -193,9 +193,12 @@ When using an existing VNet with IPv6 enabled (`enable_ipv6 = true`):
 - The module automatically detects all IPv6 network configuration from Azure when using an existing vnet.
 
 ### Availability types deployment:
-To define the zone for the Management deployment in Availability Zones supported regions:
+To deploy the Management Server in a specific Availability Zone (in regions that support them), set `zone` to one of `"1"`, `"2"`, or `"3"`:
 ```
 zone = "1"
+```
+```
+zone = "2"
 ```
 If the zone preference is not important, or the selected region does not support Availability Zones, leave the parameter as an empty string or omit it entirely:
 ```
@@ -206,7 +209,7 @@ zone = ""
 You can configure boot diagnostics by selecting the desired storage account deployment mode or disabling boot diagnostics entirely. The available options for `storage_account_deployment_mode` are:
 - `New` Creates a new storage account to be used for boot diagnostics.<br/>
 Usage: `storage_account_deployment_mode = "New"`
-- `Exists` Uses an existing storage account for boot diagnostics.<br/>
+- `Existing` Uses an existing storage account for boot diagnostics.<br/>
 Usages:
   ```
   storage_account_deployment_mode              = "Existing"
@@ -219,46 +222,48 @@ Usage: `storage_account_deployment_mode = "Managed"`
 Usage: `storage_account_deployment_mode = "None"`<br/>
 
 ## Module's variables:
-| Name | Description | Type | Allowed values |
-| ---- | ----------- | ---- | -------------- |
-| **client_secret** | The client secret value of the Service Principal used to deploy the solution | string |  N/A  |
-| **client_id** | The client ID of the Service Principal used to deploy the solution | string |  N/A  |
-| **tenant_id** | The tenant ID of the Service Principal used to deploy the solution | string |  N/A  |
-| **subscription_id** | The subscription ID is used to pay for Azure cloud services | string |  N/A  |
-| **resource_group_name** | The name of the resource group that will contain the contents of the deployment. | string | Resource group names only allow alphanumeric characters, periods, underscores, hyphens, and parenthesis and cannot end in a period. |
-| **mgmt_name** | Management name | string. | N/A |
-| **location** | The region where the resources will be deployed. | string | The full list of Azure regions can be found at https://azure.microsoft.com/regions. | 
-| **tags** | Tags can be associated either globally across all resources or scoped to specific resource types. For example, a global tag can be defined as: {"all": {"example": "example"}}.<br/>Supported resource types for tag assignment include:<br>`all` (Applies tags universally to all resource instances)<br/>`resource-group`<br/>`virtual-network`<br/>`network-security-group`<br/>`network-interface`<br/>`public-ip`<br/>`route-table`<br/>`storage-account`<br/>`virtual-machine`<br/>`custom-image`<br/>**Important:** When identical tag keys are defined both globally under `all` and within a specific resource scope, the tag value specified under `all` overrides the resource-specific tag. | map(map(string)) | **Defaults:** {} |
-| **source_image_vhd_uri** | The URI of the blob containing the development image. Please use `noCustomUri` if you want to use marketplace images. | string | **Default:** "noCustomUri" |
-| **authentication_type** | Specifies whether a password authentication or SSH Public Key authentication should be used. | string | "Password";<br />"SSH Public Key"; |
-| **admin_password** | (Optional) Administrator password of the deployed VM. Required when authentication_type is 'Password'. | string | Password must have 3 of the following: 1 lower case character, 1 upper case character, 1 number, and 1 special character.<br />**Default:** "" |
-| **admin_SSH_key** | The SSH public key for SSH connections to the instance. Used when the authentication_type is 'SSH Public Key'. | string | **Default:** "" |
-| **serial_console_password_hash** | (Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication. | string | **Default:** "" |
-| **maintenance_mode_password_hash** | (Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | **Default:** "" |
-| **vm_size** | Specifies the size of the Virtual Machine. | string | A list of valid VM sizes (e.g., "Standard_D4ds_v5", "Standard_D8ds_v5", etc). |
-| **disk_size** | Storage data disk size (GB). | string | A number in the range 100 - 3995 (GB).<br />**Default:** 200 |
-| **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210";<br />**Defaults:**R82 |
-| **vm_os_sku** | A SKU of the image to be deployed. | string | "mgmt-byol" - BYOL license;<br />"mgmt-25" - PAYG;.|
-| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210";. |
-| **allow_upload_download** | Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point. | boolean | true;<br />false;|
-| **admin_shell** | Enables selecting different admin shells | string | /etc/cli.sh;<br />/bin/bash;<br />/bin/csh;<br />/bin/tcsh;<br />**Default:** "/etc/cli.sh" |
-| **bootstrap_script**. | An optional script to run on the initial boot. | string | Bootstrap script example:<br />"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt"<br />**Default:** "" |
-| **zone** | Optional parameter, specifies the Availability Zone the solution should be deployed in. | string | "1"<br />**Default:** "" |
-| **vnet_name** | The name of the virtual network that will be created. | string | The name must begin with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. |
-| **existing_vnet_resource_group** | The name of the resource group where the Virtual Network is located. Required when using an existing Virtual Network. | string | N/A |
-| **subnet_name** | The Virtual Network subnet name used for creating a new subnet with that name when create a new Virtual Network or used as the existing subnet name when using an existing Vritual Network. | string | N/A |
-| **address_space** | The address space that is used by a Virtual Network. | string | A valid address in CIDR notation<br />**Default:** "10.0.0.0/16" |
-| **subnet_prefix** | Address prefix to be used for the network subnet. | string | A valid address in CIDR notation<br />**Default:** "10.0.0.0/24" |
-| **enable_ipv6** | Enable IPv6 dual-stack networking. When enabled, creates additional IPv6 resources including IPv6 public IP and dual-stack network interface. | bool | true;<br/>false;<br/>**Default:** false |
-| **vnet_ipv6_address_space** | The IPv6 address space for the virtual network. Required when enable_ipv6 is true. | string | Valid IPv6 CIDR block<br/>**Default:** "ace:cab:deca::/48" |
-| **subnet_ipv6_prefix** | IPv6 address prefix to be used for the management subnet. Required when enable_ipv6 is true. Must be a /64 prefix. | string | Valid IPv6 CIDR block (must be a /64 prefix within the VNet IPv6 address space)<br/>**Default:** "ace:cab:deca:deed::/64" |
-| **management_GUI_client_network** | Allowed GUI clients - GUI clients network CIDR or '*' for any (IPv4 and IPv6). | string | Valid IPv4 CIDR block or "*"<br />**Default:** "0.0.0.0/0" |
-| **management_GUI_client_network_ipv6** | Allowed GUI clients - GUI clients network IPv6 CIDR. Used when enable_ipv6 is true. Set to "" (empty string) to deny all IPv6-specific NSG rules. | string | Valid IPv6 CIDR block or "" to deny all IPv6 NSG rules<br/>**Default:** "::/0" |
-| **mgmt_enable_api** | Enable API access to the management. | string | "all";<br />"management_only";<br />"gui_clients";<br />"disable";<br />**Default:** "disable" |
-| **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a default NSG will be created. | string | Existing NSG resource ID<br />**Default:** "" |
-| **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None;<br/> **Default:** New |
-| **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location. If false, then access will be allowed from all networks.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | boolean | true;<br />false;<br />**Default:** false |
-| **storage_account_additional_ips**| IPs/CIDRs that are allowed access to the Storage Account.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | list(string) | A list of valid IPs and CIDRs<br />**Default:** [] |
-| **existing_strorage_account_name** | The existing storage account name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | **Default:** "" |
-| **existing_strorage_account_resource_group_name** | The existing storage account resource group name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | **Default:** "" |
-| **security_rules** | Security  rules for the Network Security. | list(any) | A security rule is composed of: {name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description}<br />**Default:** [] |
+| Name | Description | Type | Allowed values | Default | Required |
+| ---- | ----------- | ---- | -------------- | ------- | -------- |
+| **client_secret** | The client secret value of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
+| **client_id** | The client ID of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
+| **tenant_id** | The tenant ID of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
+| **subscription_id** | The subscription ID is used to pay for Azure cloud services | string | N/A | N/A | Yes |
+| **resource_group_name** | The name of the resource group that will contain the contents of the deployment. | string | Resource group names only allow alphanumeric characters, periods, underscores, hyphens, and parenthesis and cannot end in a period. | N/A | Yes |
+| **mgmt_name** | Management name. | string | 1-64 characters; alphanumerics and hyphens only; must not start or end with a hyphen. | N/A | Yes |
+| **location** | The region where the resources will be deployed. | string | The full list of Azure regions can be found at https://azure.microsoft.com/regions. | N/A | Yes |
+| **tags** | Tags can be associated either globally across all resources or scoped to specific resource types. For example, a global tag can be defined as: {"all": {"example": "example"}}.<br/>Supported resource types for tag assignment include:<br>`all` (Applies tags universally to all resource instances)<br/>`resource-group`<br/>`virtual-network`<br/>`network-security-group`<br/>`network-interface`<br/>`public-ip`<br/>`route-table`<br/>`storage-account`<br/>`virtual-machine`<br/>`custom-image`<br/>**Important:** When identical tag keys are defined both globally under `all` and within a specific resource scope, the tag value specified under `all` overrides the resource-specific tag. | map(map(string)) | N/A | {} | No |
+| **source_image_vhd_uri** | The URI of the blob containing the development image. Please use `noCustomUri` if you want to use marketplace images. | string | N/A | "noCustomUri" | No |
+| **admin_username** | Administrator username of the deployed VM. Accepted for backward compatibility; the value passed here is ignored and the username used internally is the one set by the shared common module. | string | N/A | "notused" | No |
+| **authentication_type** | Specifies whether a password authentication or SSH Public Key authentication should be used. | string | "Password";<br />"SSH Public Key"; | N/A | Yes |
+| **admin_password** | (Optional) Administrator password of the deployed VM. Required when authentication_type is 'Password'. | string | Password must have 3 of the following: 1 lower case character, 1 upper case character, 1 number, and 1 special character. | "" | No |
+| **admin_SSH_key** | The SSH public key for SSH connections to the instance. Used when the authentication_type is 'SSH Public Key'. | string | N/A | "" | No |
+| **serial_console_password_hash** | (Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication. | string | N/A | "" | No |
+| **maintenance_mode_password_hash** | (Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | N/A | "" | No |
+| **vm_size** | Specifies the size of the Virtual Machine. | string | One of the supported Azure VM sizes (e.g. "Standard_D4ds_v5", "Standard_D8ds_v5"). | N/A | Yes |
+| **disk_size** | Storage data disk size (GB). | string | A number in the range 100 - 3995 (GB). | "200" | No |
+| **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210";<br />"R8220"; | "R82" | No |
+| **vm_os_sku** | A SKU of the image to be deployed. | string | "mgmt-byol" - BYOL license;<br />"mgmt-25" - PAYG. | N/A | Yes |
+| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210";<br />"check-point-cg-r8220". | N/A | Yes |
+| **allow_upload_download** | Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point. | boolean | true;<br />false; | N/A | Yes |
+| **admin_shell** | Enables selecting different admin shells | string | /etc/cli.sh;<br />/bin/bash;<br />/bin/csh;<br />/bin/tcsh; | "/etc/cli.sh" | No |
+| **bootstrap_script** | An optional script to run on the initial boot. | string | Bootstrap script example:<br />"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt" | "" | No |
+| **zone** | Optional parameter, specifies the Availability Zone the solution should be deployed in. Leave empty to deploy in regions that do not support Availability Zones, or when the zone preference is not important. | string | "1";<br />"2";<br />"3"; | "" | No |
+| **vnet_name** | The name of the virtual network that will be created. | string | The name must begin with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. | N/A | Yes |
+| **existing_vnet_resource_group** | The name of the resource group where the Virtual Network is located. Required when using an existing Virtual Network. | string | A valid Azure Resource Group name. | "" | No |
+| **subnet_name** | The Virtual Network subnet name used for creating a new subnet with that name when create a new Virtual Network or used as the existing subnet name when using an existing Virtual Network. | string | N/A | N/A | Yes |
+| **address_space** | The address space that is used by a Virtual Network. | string | A valid address in CIDR notation | "10.0.0.0/16" | No |
+| **subnet_prefix** | Address prefix to be used for the network subnet. | string | A valid address in CIDR notation | "10.0.0.0/24" | No |
+| **enable_ipv6** | Enable IPv6 dual-stack networking. When enabled, creates additional IPv6 resources including IPv6 public IP and dual-stack network interface. | bool | true;<br/>false; | false | No |
+| **vnet_ipv6_address_space** | The IPv6 address space for the virtual network. Used when IPv6 is enabled and a new Virtual Network is created. Ignored when an existing Virtual Network is used (the IPv6 configuration is detected automatically). | string | Valid IPv6 CIDR block | "ace:cab:deca::/48" | No |
+| **subnet_ipv6_prefix** | IPv6 address prefix to be used for the management subnet. Used when IPv6 is enabled and a new Virtual Network is created (must be a /64 prefix). Ignored when an existing Virtual Network is used. | string | Valid /64 IPv6 CIDR block within the VNet IPv6 address space | "ace:cab:deca:deed::/64" | No |
+| **management_GUI_client_network** | Allowed GUI clients - GUI clients network CIDR. Use "0.0.0.0/0" to allow access from any IPv4 address. | string | Valid IPv4 CIDR block (e.g. "0.0.0.0/0" for any). | "0.0.0.0/0" | No |
+| **management_GUI_client_network_ipv6** | Allowed GUI clients - GUI clients network IPv6 CIDR. Used when enable_ipv6 is true. Set to "" (empty string) to deny all IPv6-specific NSG rules. | string | Valid IPv6 CIDR block or "" to deny all IPv6 NSG rules | "::/0" | No |
+| **mgmt_enable_api** | Enable API access to the management. | string | "all";<br />"management_only";<br />"gui_clients";<br />"disable"; | "disable" | No |
+| **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a default NSG will be created. | string | Existing NSG resource ID | "" | No |
+| **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None; | "New" | No |
+| **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location. If false, then access will be allowed from all networks.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | boolean | true;<br />false; | false | No |
+| **storage_account_additional_ips**| IPs/CIDRs that are allowed access to the Storage Account.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | list(string) | A list of valid IPs and CIDRs | [] | No |
+| **existing_storage_account_name** | The existing storage account name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |
+| **existing_storage_account_resource_group_name** | The existing storage account resource group name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |
+| **sku** | The SKU used for the public IP address attached to the Management server. | string | "Basic";<br />"Standard"; | "Standard" | No |
+| **security_rules** | Additional security rules for the Network Security Group. Merged on top of the module's built-in rules for management/gateway communication. | list(any) | A security rule composed of: {name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description} | [] | No |
