@@ -186,7 +186,6 @@ variable "admin_shell" {
 variable "sic_key" {
   description = "Secure Internal Communication (SIC) key."
   type        = string
-  default     = ""
   sensitive   = true
 
   validation {
