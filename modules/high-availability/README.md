@@ -177,61 +177,62 @@ Usage: `storage_account_deployment_mode = "Managed"`
 Usage: `storage_account_deployment_mode = "None"`<br/>
 
 ## Module's variables:
-| Name | Description | Type | Allowed values |
-| ---- | ----------- | ---- | -------------- |
-| **client_secret** | The client secret value of the Service Principal used to deploy the solution | string |  N/A  |
-| **client_id** | The client ID of the Service Principal used to deploy the solution | string |  N/A  |
-| **tenant_id** | The tenant ID of the Service Principal used to deploy the solution | string |  N/A  |
-| **subscription_id** | The subscription ID is used to pay for Azure cloud services | string |  N/A  |
-| **tenant_id** | The tenant ID of the Service Principal used to deploy the solution. | string | N/A |
-| **resource_group_name** | The name of the resource group that will contain the contents of the deployment. | string | Resource group names only allow alphanumeric characters, periods, underscores, hyphens, and parentheses and cannot end in a period. |
-| **cluster_name** | The name of the Check Point Cluster Object. | string | Only alphanumeric characters are allowed, and the name must be 1-30 characters long. |
-| **location** | The region where the resources will be deployed at. | string | The full list of Azure regions can be found at https://azure.microsoft.com/regions. |
-| **tags** | Tags can be associated either globally across all resources or scoped to specific resource types. For example, a global tag can be defined as: {"all": {"example": "example"}}.<br/>Supported resource types for tag assignment include:<br>`all` (Applies tags universally to all resource instances)<br/>`resource-group`<br/>`virtual-network`<br/>`network-security-group`<br/>`network-interface`<br/>`public-ip`<br/>`public-ip-prefix`<br/>`load-balancer`<br/>`route-table`<br/>`storage-account`<br/>`virtual-machine`<br/>`custom-image`<br/>`availability-set`<br/>**Important:** When identical tag keys are defined both globally under `all` and within a specific resource scope, the tag value specified under `all` overrides the resource-specific tag. | map(map(string)) | **Defaults:** {} |
-| **source_image_vhd_uri** | The URI of the blob containing the development image. Please use noCustomUri if you want to use marketplace images. | string | **Default:** "noCustomUri" |
-| **admin_username** | Administrator username of deployed VM. Due to Azure limitations 'notused' name can be used. | string | **Default:** "notused" |
-| **authentication_type** | Specifies whether a password authentication or SSH Public Key authentication should be used. | string | "Password";<br />"SSH Public Key"; |
-| **admin_password** | (Optional) Administrator password of the deployed VM. Required when authentication_type is 'Password'. | string | Password must have 3 of the following: 1 lowercase character, 1 uppercase character, 1 number, and 1 special character.<br />**Default:** "" |
-| **admin_SSH_key** | The SSH public key for SSH connections to the instance. Used when the authentication_type is 'SSH Public Key'. | string | **Default:** "" |
-| **sic_key** | The Secure Internal Communication one-time secret used to set up trust between the cluster object and the management server. | string | Only alphanumeric characters are allowed, and the value must be 12-30 characters long. |
-| **serial_console_password_hash** | (Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication. | string | **Default:** "" |
-| **maintenance_mode_password_hash** | (Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | **Default:** "" |
-| **number_of_vm_instances** | Number of VM instances to deploy. | string | **Default:** "2" |
-| **vm_size** | Specifies the size of the Virtual Machine. | string | A list of valid VM sizes (e.g., "Standard_D4ds_v5", "Standard_D8ds_v5", etc). |
-| **disk_size** | Storage data disk size (GB). | string | A number in the range 100 - 3995 (GB).<br />**Default:** 200 |
-| **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210"; |
-| **vm_os_sku** | A SKU of the image to be deployed. | string | "sg-byol" - BYOL license;<br />"sg-ngtp" - NGTP PAYG license;<br />"sg-ngtx" - NGTX PAYG license; |
-| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210"; |
-| **allow_upload_download** | Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point. | boolean| true;<br />false;|
-| **admin_shell** | Enables selecting different admin shells. | string | /etc/cli.sh;<br />/bin/bash;<br />/bin/csh;<br />/bin/tcsh;<br />**Default:** "/etc/cli.sh" |
-| **bootstrap_script** | An optional script to run on the initial boot. | string | Bootstrap script example:<br />"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt" |
-| **is_blink** | Define if blink image is used for deployment | boolean | true;<br />false;<br />**Default:** true |
-| **enable_custom_metrics** | Indicates whether CloudGuard Metrics will be used for Cluster members monitoring. | boolean | true;<br />false;<br />**Default:** true |
-| **availability_type** | Optional parameter, specifies whether to deploy the solution based on Azure Availability Set or Azure Availability Zone. | string | "Availability Zone";<br />"Availability Set";<br />**Default:** "Availability Zone" |
-| **availability_zones** | Optional parameter, specifies in which zones to deploy the solution (up to two zones). | list(string) | ["1"];<br />["1", "2"];<br />**Default:**  [] |
-| **smart_1_cloud_token_a** | Smart-1 Cloud token to connect automatically ***Member A*** to Check Point's Security Management as a Service. | string | A valid token copied from the Connect Gateway screen in the Smart-1 Cloud portal. |
-| **smart_1_cloud_token_b** | Smart-1 Cloud token to connect automatically ***Member B*** to Check Point's Security Management as a Service. | string | A valid token copied from the Connect Gateway screen in the Smart-1 Cloud portal. |
-| **vnet_name** | The name of the virtual network that will be created. | string | The name must begin with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. |
-| **existing_vnet_resource_group** | The name of the resource group where the Virtual Network is located. Required when using an existing Virtual Network. | string | **Default:** "" |
-| **frontend_subnet_name** | The Virtual Network subnet name for the frontend interface. | string | N/A |
-| **backend_subnet_name** | The Virtual Network subnet name for the backend interface. | string | N/A |
-| **address_space** | The address prefixes of the virtual network. | string | Valid CIDR block<br />**Default:** "10.0.0.0/16" |
-| **subnet_prefixes** | The address prefixes to be used for created subnets. | string | The subnets need to contain within the address space for this virtual network (defined by the `address_space` variable).<br />**Default:** ["10.0.0.0/24", "10.0.1.0/24"] |
-| **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a default NSG will be created. | string | Existing NSG resource ID<br />**Default:** "" |
-| **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None;<br/> **Default:** New |
-| **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | boolean| true;<br />false;<br />**Default:** false |
-| **storage_account_additional_ips** | IPs/CIDRs that are allowed access to the Storage Account.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | list(string) | A list of valid IPs and CIDRs<br />**Default:** [] |
-| **existing_storage_account_name** | The existing storage account name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | **Default:** "" |
-| **existing_storage_account_resource_group_name** | The existing storage account resource group name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | **Default:** "" |
-| **sku** | SKU | string | **Default:** "Standard" |
-| **security_rules** | Security rules for the Network Security Group. | list(any) | A security rule composed of: {name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description}<br />**Default:** [] |
-| **vips_names** | Names for additional Virtual IP addresses beyond the primary cluster VIP. Each name creates a corresponding public IP resource. | list(string) | **Default:** [] |
-| **lb_probe_name** | Name to be used for lb health probe. | string | **Default:** "health_prob_port" |
-| **lb_probe_port** | Port to be used for load balancer health probes and rules. | string | **Default:** "8117" |
-| **lb_probe_protocol** | Protocols to be used for load balancer health probes and rules. | string | **Default:** "Tcp" |
-| **lb_probe_unhealthy_threshold** | Number of times load balancer health probe has an unsuccessful attempt before considering the endpoint unhealthy. | number | **Default:** 2 |
-| **lb_probe_interval** | Interval in seconds load balancer health probe rule perfoms a check. | number | **Default:** 5 |
-| **enable_floating_ip** | Indicates whether the load balancers will be deployed with floating IP. | boolean | true;<br />false;<br />**Default:** true |
-| **use_public_ip_prefix** | Indicates whether the public IP resources will be deployed with public IP prefix. | boolean | true;<br />false;<br />**Default:** false |
-| **create_public_ip_prefix** | Indicates whether the public IP prefix will be created or an existing one will be used. | boolean | true;<br />false;<br />**Default:** false |
-| **existing_public_ip_prefix_id** | The existing public IP prefix resource ID. | string | Existing public IP prefix resource ID.<br />**Default:** "" |
+| Name | Description | Type | Allowed values | Default | Required |
+| ---- | ----------- | ---- | -------------- | ------- | -------- |
+| **client_secret** | The client secret value of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
+| **client_id** | The client ID of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
+| **tenant_id** | The tenant ID of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
+| **subscription_id** | The subscription ID is used to pay for Azure cloud services | string | N/A | N/A | Yes |
+| **resource_group_name** | The name of the resource group that will contain the contents of the deployment. | string | Resource group names only allow alphanumeric characters, periods, underscores, hyphens, and parentheses and cannot end in a period. | N/A | Yes |
+| **cluster_name** | The name of the Check Point Cluster Object. | string | 1-64 characters; alphanumerics and hyphens only; must not start or end with a hyphen. | N/A | Yes |
+| **location** | The region where the resources will be deployed at. | string | The full list of Azure regions can be found at https://azure.microsoft.com/regions. | N/A | Yes |
+| **extended_zone** | Deploy in Azure Extended Zone for ultra-low latency edge computing. Use 'losangeles', 'perth', or 'None' for standard regions. | string | "None";<br />"losangeles";<br />"perth"; | "None" | No |
+| **tags** | Tags can be associated either globally across all resources or scoped to specific resource types. For example, a global tag can be defined as: {"all": {"example": "example"}}.<br/>Supported resource types for tag assignment include:<br>`all` (Applies tags universally to all resource instances)<br/>`resource-group`<br/>`virtual-network`<br/>`network-security-group`<br/>`network-interface`<br/>`public-ip`<br/>`public-ip-prefix`<br/>`load-balancer`<br/>`route-table`<br/>`storage-account`<br/>`virtual-machine`<br/>`custom-image`<br/>`availability-set`<br/>**Important:** When identical tag keys are defined both globally under `all` and within a specific resource scope, the tag value specified under `all` overrides the resource-specific tag. | map(map(string)) | N/A | {} | No |
+| **source_image_vhd_uri** | The URI of the blob containing the development image. Please use noCustomUri if you want to use marketplace images. | string | N/A | "noCustomUri" | No |
+| **admin_username** | Administrator username of deployed VM. Due to Azure limitations 'notused' name can be used. | string | N/A | "notused" | No |
+| **authentication_type** | Specifies whether a password authentication or SSH Public Key authentication should be used. | string | "Password";<br />"SSH Public Key"; | N/A | Yes |
+| **admin_password** | (Optional) Administrator password of the deployed VM. Required when authentication_type is 'Password'. | string | Password must have 3 of the following: 1 lowercase character, 1 uppercase character, 1 number, and 1 special character. | "" | No |
+| **admin_SSH_key** | The SSH public key for SSH connections to the instance. Used when the authentication_type is 'SSH Public Key'. | string | N/A | "" | No |
+| **sic_key** | The Secure Internal Communication one-time secret used to set up trust between the cluster object and the management server. | string | Only alphanumeric characters are allowed, and the value must be 12-30 characters long. | N/A | Yes |
+| **serial_console_password_hash** | (Optional) Password hash for serial console connection. Relevant when using SSH Public Key authentication. | string | N/A | "" | No |
+| **maintenance_mode_password_hash** | (Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | N/A | "" | No |
+| **number_of_vm_instances** | Number of VM instances to deploy. | string | N/A | "2" | No |
+| **vm_size** | Specifies the size of the Virtual Machine. | string | A list of valid VM sizes (e.g., "Standard_D4ds_v5", "Standard_D8ds_v5", etc). | N/A | Yes |
+| **disk_size** | Storage data disk size (GB). | string | A number in the range 100 - 3995 (GB). | "200" | No |
+| **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210";<br />"R8220"; | N/A | Yes |
+| **vm_os_sku** | A SKU of the image to be deployed. | string | "sg-byol" - BYOL license;<br />"sg-ngtp" - NGTP PAYG license;<br />"sg-ngtx" - NGTX PAYG license; | N/A | Yes |
+| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210";<br />"check-point-cg-r8220"; | N/A | Yes |
+| **allow_upload_download** | Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point. | boolean | true;<br />false; | N/A | Yes |
+| **admin_shell** | Enables selecting different admin shells. | string | /etc/cli.sh;<br />/bin/bash;<br />/bin/csh;<br />/bin/tcsh; | "/etc/cli.sh" | No |
+| **bootstrap_script** | An optional script to run on the initial boot. | string | Bootstrap script example:<br />"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt" | "" | No |
+| **is_blink** | Define if blink image is used for deployment | boolean | true;<br />false; | true | No |
+| **enable_custom_metrics** | Indicates whether CloudGuard Metrics will be used for Cluster members monitoring. | boolean | true;<br />false; | true | No |
+| **availability_type** | Optional parameter, specifies whether to deploy the solution based on Azure Availability Set or Azure Availability Zone. | string | "Availability Zone";<br />"Availability Set"; | "Availability Zone" | No |
+| **availability_zones** | Optional parameter, specifies in which zones to deploy the solution (up to two zones). | list(string) | ["1"];<br />["1", "2"]; | [] | No |
+| **smart_1_cloud_token_a** | Smart-1 Cloud token to connect automatically ***Member A*** to Check Point's Security Management as a Service. | string | A valid token copied from the Connect Gateway screen in the Smart-1 Cloud portal. | "" | No |
+| **smart_1_cloud_token_b** | Smart-1 Cloud token to connect automatically ***Member B*** to Check Point's Security Management as a Service. | string | A valid token copied from the Connect Gateway screen in the Smart-1 Cloud portal. | "" | No |
+| **vnet_name** | The name of the virtual network that will be created. | string | The name must begin with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. | N/A | Yes |
+| **existing_vnet_resource_group** | The name of the resource group where the Virtual Network is located. Required when using an existing Virtual Network. | string | N/A | "" | No |
+| **frontend_subnet_name** | The Virtual Network subnet name for the frontend interface. | string | N/A | N/A | Yes |
+| **backend_subnet_name** | The Virtual Network subnet name for the backend interface. | string | N/A | N/A | Yes |
+| **address_space** | The address prefixes of the virtual network. | string | Valid CIDR block | "10.0.0.0/16" | No |
+| **subnet_prefixes** | The address prefixes to be used for created subnets. | list(string) | The subnets need to contain within the address space for this virtual network (defined by the `address_space` variable). | ["10.0.0.0/24", "10.0.1.0/24"] | No |
+| **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a default NSG will be created. | string | Existing NSG resource ID | "" | No |
+| **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None; | "New" | No |
+| **storage_account_type** | Storage account type for managed disks. Valid options are Standard_LRS and Premium_LRS. | string | "Standard_LRS";<br/>"Premium_LRS"; | "Standard_LRS" | No |
+| **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | boolean | true;<br />false; | false | No |
+| **storage_account_additional_ips** | IPs/CIDRs that are allowed access to the Storage Account.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | list(string) | A list of valid IPs and CIDRs | [] | No |
+| **existing_storage_account_name** | The existing storage account name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |
+| **existing_storage_account_resource_group_name** | The existing storage account resource group name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |
+| **sku** | SKU | string | N/A | "Standard" | No |
+| **security_rules** | Security rules for the Network Security Group. | list(any) | A security rule composed of: {name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description} | Allow all inbound traffic. | No |
+| **vips_names** | Names for additional Virtual IP addresses beyond the primary cluster VIP. Each name creates a corresponding public IP resource. | list(string) | N/A | [] | No |
+| **lb_probe_name** | Name to be used for lb health probe. | string | N/A | "health_prob_port" | No |
+| **lb_probe_port** | Port to be used for load balancer health probes and rules. | string | N/A | "8117" | No |
+| **lb_probe_protocol** | Protocols to be used for load balancer health probes and rules. | string | N/A | "Tcp" | No |
+| **lb_probe_unhealthy_threshold** | Number of times load balancer health probe has an unsuccessful attempt before considering the endpoint unhealthy. | number | N/A | 2 | No |
+| **lb_probe_interval** | Interval in seconds load balancer health probe rule perfoms a check. | number | N/A | 5 | No |
+| **enable_floating_ip** | Indicates whether the load balancers will be deployed with floating IP. | boolean | true;<br />false; | true | No |
+| **use_public_ip_prefix** | Indicates whether the public IP resources will be deployed with public IP prefix. | boolean | true;<br />false; | false | No |
+| **create_public_ip_prefix** | Indicates whether the public IP prefix will be created or an existing one will be used. | boolean | true;<br />false; | false | No |
+| **existing_public_ip_prefix_id** | The existing public IP prefix resource ID. | string | Existing public IP prefix resource ID. | "" | No |

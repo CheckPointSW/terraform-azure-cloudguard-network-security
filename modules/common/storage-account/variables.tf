@@ -66,9 +66,9 @@ variable "storage_account_additional_ips" {
   default     = []
 
   validation {
-    condition = !contains(var.storage_account_additional_ips, "0.0.0.0") && can([for ip in var.storage_account_additional_ips : regex("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+    condition = length([for ip in var.storage_account_additional_ips : ip if can(regex("^0\\.0\\.0\\.0(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))?$", ip))]) == 0 && can([for ip in var.storage_account_additional_ips : regex("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))?$",
     ip)])
-    error_message = "Variable [storage_account_additional_ips] must be a list of valid IP addresses and cannot contain '0.0.0.0'."
+    error_message = "Variable [storage_account_additional_ips] must be a list of valid IPv4 addresses or CIDR blocks (/0 to /32) and cannot contain '0.0.0.0'."
   }
 }
 

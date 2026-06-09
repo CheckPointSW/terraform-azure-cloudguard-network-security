@@ -128,6 +128,11 @@ variable "nsg_id" {
   type        = string
 }
 
+variable "enable_nsg" {
+  type    = bool
+  default = true
+}
+
 variable "dns_servers" {
   description = " DNS servers to be used with a Virtual Network. If no values specified, this defaults to Azure DNS."
   type        = list(string)
