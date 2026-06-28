@@ -34,9 +34,9 @@ locals {
   // For IPv6: Read from existing subnets when using existing VNet, otherwise use provided variables
   subnet_ipv6_prefixes = local.create_new_vnet ? var.subnet_ipv6_prefixes : (
     var.enable_ipv6 ? (
-      length(var.subnet_names) == 1 ? 
-        [data.azurerm_subnet.frontend[0].address_prefixes[1]] :
-        [data.azurerm_subnet.frontend[0].address_prefixes[1], data.azurerm_subnet.backend[0].address_prefixes[1]]
+      length(var.subnet_names) == 1 ?
+      [data.azurerm_subnet.frontend[0].address_prefixes[1]] :
+      [data.azurerm_subnet.frontend[0].address_prefixes[1], data.azurerm_subnet.backend[0].address_prefixes[1]]
     ) : []
   )
 

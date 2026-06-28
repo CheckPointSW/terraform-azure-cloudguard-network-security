@@ -5,9 +5,10 @@ resource "azurerm_image" "custom_image" {
   resource_group_name = var.resource_group_name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = var.source_image_vhd_uri
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = var.source_image_vhd_uri
+    storage_type = var.storage_type
   }
 
   tags = var.tags

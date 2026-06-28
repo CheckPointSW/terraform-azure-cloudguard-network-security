@@ -37,7 +37,7 @@ module "network_security_group" {
 
 //********************** Networking **************************//
 locals {
-  edge_zone                      = var.extended_zone != "None" ? var.extended_zone : null
+  edge_zone                       = var.extended_zone != "None" ? var.extended_zone : null
   storage_account_deployment_mode = var.extended_zone == "None" ? var.storage_account_deployment_mode : "None"
 }
 
@@ -120,11 +120,11 @@ resource "azurerm_lb_backend_address_pool" "backend_pool_v6" {
 }
 
 resource "azurerm_lb_probe" "lb_probe_v6" {
-  count           = var.enable_ipv6 ? 1 : 0
-  name            = "lb-probe"
-  loadbalancer_id = azurerm_lb.lb_v6[0].id
-  protocol        = "Tcp"
-  port            = 8117
+  count               = var.enable_ipv6 ? 1 : 0
+  name                = "lb-probe"
+  loadbalancer_id     = azurerm_lb.lb_v6[0].id
+  protocol            = "Tcp"
+  port                = 8117
   interval_in_seconds = 5
   number_of_probes    = 2
 }
@@ -139,18 +139,18 @@ resource "azurerm_lb_rule" "lb_rule_http_v6" {
   frontend_ip_configuration_name = "LB-v6"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_pool_v6[0].id]
   probe_id                       = azurerm_lb_probe.lb_probe_v6[0].id
-  enable_floating_ip             = true
-  enable_tcp_reset               = true
+  floating_ip_enabled            = true
+  tcp_reset_enabled              = true
   idle_timeout_in_minutes        = 15
   disable_outbound_snat          = true
 }
 
 resource "azurerm_lb_outbound_rule" "outbound_v6" {
-  count                   = var.enable_ipv6 ? 1 : 0
-  name                    = "ob-v6"
-  loadbalancer_id         = azurerm_lb.lb_v6[0].id
-  protocol                = "All"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.backend_pool_v6[0].id
+  count                    = var.enable_ipv6 ? 1 : 0
+  name                     = "ob-v6"
+  loadbalancer_id          = azurerm_lb.lb_v6[0].id
+  protocol                 = "All"
+  backend_address_pool_id  = azurerm_lb_backend_address_pool.backend_pool_v6[0].id
   allocated_outbound_ports = 8192
   idle_timeout_in_minutes  = 4
 
@@ -173,12 +173,12 @@ resource "azurerm_network_interface" "nic" {
     azurerm_public_ip.public_ip,
     module.vnet
   ]
-  name                          = "${var.single_gateway_name}-eth0"
-  location                      = module.common.resource_group_location
-  resource_group_name           = module.common.resource_group_name
-  enable_ip_forwarding          = true
-  enable_accelerated_networking = true
-  edge_zone                     = local.edge_zone
+  name                           = "${var.single_gateway_name}-eth0"
+  location                       = module.common.resource_group_location
+  resource_group_name            = module.common.resource_group_name
+  ip_forwarding_enabled          = true
+  accelerated_networking_enabled = true
+  edge_zone                      = local.edge_zone
 
 
   ip_configuration {
@@ -215,12 +215,12 @@ resource "azurerm_network_interface" "nic1" {
   depends_on = [
     module.vnet
   ]
-  name                          = "${var.single_gateway_name}-eth1"
-  location                      = module.common.resource_group_location
-  resource_group_name           = module.common.resource_group_name
-  enable_ip_forwarding          = true
-  enable_accelerated_networking = true
-  edge_zone                     = local.edge_zone
+  name                           = "${var.single_gateway_name}-eth1"
+  location                       = module.common.resource_group_location
+  resource_group_name            = module.common.resource_group_name
+  ip_forwarding_enabled          = true
+  accelerated_networking_enabled = true
+  edge_zone                      = local.edge_zone
 
 
   ip_configuration {
@@ -255,7 +255,7 @@ module "vm_boot_diagnostics_storage" {
   location                                     = module.common.resource_group_location
   add_storage_account_ip_rules                 = var.add_storage_account_ip_rules
   storage_account_additional_ips               = var.storage_account_additional_ips
-  storage_account_type                          = var.storage_account_type
+  storage_account_type                         = var.storage_account_type
   tags                                         = merge(lookup(var.tags, "storage-account", {}), lookup(var.tags, "all", {}))
 }
 
@@ -265,6 +265,7 @@ module "custom_image" {
   source_image_vhd_uri = var.source_image_vhd_uri
   resource_group_name  = module.common.resource_group_name
   location             = module.common.resource_group_location
+  storage_type         = var.storage_account_type
   tags                 = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 

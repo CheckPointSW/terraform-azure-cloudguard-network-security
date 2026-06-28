@@ -115,12 +115,12 @@ resource "azurerm_network_interface" "nic_vip" {
     azurerm_public_ip.public_ip,
     azurerm_public_ip.vips,
   ]
-  name                          = "${var.cluster_name}1-eth0"
-  location                      = module.common.resource_group_location
-  resource_group_name           = module.common.resource_group_name
-  enable_ip_forwarding          = true
-  enable_accelerated_networking = true
-  edge_zone                     = local.edge_zone
+  name                           = "${var.cluster_name}1-eth0"
+  location                       = module.common.resource_group_location
+  resource_group_name            = module.common.resource_group_name
+  ip_forwarding_enabled          = true
+  accelerated_networking_enabled = true
+  edge_zone                      = local.edge_zone
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -178,12 +178,12 @@ resource "azurerm_network_interface" "nic" {
     azurerm_public_ip.public_ip,
     azurerm_lb.frontend_lb
   ]
-  name                          = "${var.cluster_name}2-eth0"
-  location                      = module.common.resource_group_location
-  resource_group_name           = module.common.resource_group_name
-  enable_ip_forwarding          = true
-  enable_accelerated_networking = true
-  edge_zone                     = local.edge_zone
+  name                           = "${var.cluster_name}2-eth0"
+  location                       = module.common.resource_group_location
+  resource_group_name            = module.common.resource_group_name
+  ip_forwarding_enabled          = true
+  accelerated_networking_enabled = true
+  edge_zone                      = local.edge_zone
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -219,13 +219,13 @@ resource "azurerm_network_interface" "nic1" {
   depends_on = [
     azurerm_lb.backend_lb
   ]
-  count                         = 2
-  name                          = "${var.cluster_name}${count.index + 1}-eth1"
-  location                      = module.common.resource_group_location
-  resource_group_name           = module.common.resource_group_name
-  enable_ip_forwarding          = true
-  enable_accelerated_networking = true
-  edge_zone                     = local.edge_zone
+  count                          = 2
+  name                           = "${var.cluster_name}${count.index + 1}-eth1"
+  location                       = module.common.resource_group_location
+  resource_group_name            = module.common.resource_group_name
+  ip_forwarding_enabled          = true
+  accelerated_networking_enabled = true
+  edge_zone                      = local.edge_zone
 
   ip_configuration {
     name                          = "ipconfig2"
@@ -323,7 +323,7 @@ resource "azurerm_lb_rule" "backend_lb_rules" {
   load_distribution              = "Default"
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.backend_lb_pool.id]
   probe_id                       = azurerm_lb_probe.azure_lb_healprob[1].id
-  enable_floating_ip             = var.enable_floating_ip
+  floating_ip_enabled            = var.enable_floating_ip
 }
 
 //********************** Availability Set **************************//
@@ -348,7 +348,7 @@ module "vm_boot_diagnostics_storage" {
   location                                     = module.common.resource_group_location
   add_storage_account_ip_rules                 = var.add_storage_account_ip_rules
   storage_account_additional_ips               = var.storage_account_additional_ips
-  storage_account_type                          = var.storage_account_type
+  storage_account_type                         = var.storage_account_type
   tags                                         = merge(lookup(var.tags, "storage-account", {}), lookup(var.tags, "all", {}))
 }
 
@@ -358,6 +358,7 @@ module "custom_image" {
   source_image_vhd_uri = var.source_image_vhd_uri
   resource_group_name  = module.common.resource_group_name
   location             = module.common.resource_group_location
+  storage_type         = var.storage_account_type
   tags                 = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
@@ -562,16 +563,16 @@ resource "azurerm_linux_virtual_machine" "vm_instance_availability_zone_extended
     azurerm_network_interface.nic_vip
   ]
 
-  count                         = local.availability_set_condition || var.extended_zone == "None" ? 0 : module.common.number_of_vm_instances
-  name                          = "${var.cluster_name}${count.index + 1}"
-  location                      = module.common.resource_group_location
-  resource_group_name           = module.common.resource_group_name
-  edge_zone                     = local.edge_zone
-  zone                          = null
-  size                          = module.common.vm_size
-  computer_name                 = "${lower(var.cluster_name)}${count.index + 1}"
-  admin_username                = module.common.admin_username
-  admin_password                = module.common.admin_password
+  count                           = local.availability_set_condition || var.extended_zone == "None" ? 0 : module.common.number_of_vm_instances
+  name                            = "${var.cluster_name}${count.index + 1}"
+  location                        = module.common.resource_group_location
+  resource_group_name             = module.common.resource_group_name
+  edge_zone                       = local.edge_zone
+  zone                            = null
+  size                            = module.common.vm_size
+  computer_name                   = "${lower(var.cluster_name)}${count.index + 1}"
+  admin_username                  = module.common.admin_username
+  admin_password                  = module.common.admin_password
   disable_password_authentication = module.common.SSH_authentication_type_condition
 
   network_interface_ids = count.index == 0 ? [
@@ -667,7 +668,7 @@ resource "azurerm_role_assignment" "cluster_virtual_machine_contributor_assignme
   count              = 2
   scope              = module.common.resource_group_id
   role_definition_id = data.azurerm_role_definition.virtual_machine_contributor_role_definition.id
-  principal_id       = coalesce(
+  principal_id = coalesce(
     try(azurerm_linux_virtual_machine.vm_instance_availability_zone_extended[count.index].identity[0].principal_id, null),
     try(azurerm_virtual_machine.vm_instance_availability_set[count.index].identity[0].principal_id, null),
     try(azurerm_virtual_machine.vm_instance_availability_zone[count.index].identity[0].principal_id, null)
@@ -684,7 +685,7 @@ resource "azurerm_role_assignment" "cluster_reader_assigment" {
   count              = 2
   scope              = module.common.resource_group_id
   role_definition_id = data.azurerm_role_definition.reader_role_definition.id
-  principal_id       = coalesce(
+  principal_id = coalesce(
     try(azurerm_linux_virtual_machine.vm_instance_availability_zone_extended[count.index].identity[0].principal_id, null),
     try(azurerm_virtual_machine.vm_instance_availability_set[count.index].identity[0].principal_id, null),
     try(azurerm_virtual_machine.vm_instance_availability_zone[count.index].identity[0].principal_id, null)
