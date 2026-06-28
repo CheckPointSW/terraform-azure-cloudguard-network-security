@@ -227,7 +227,7 @@ resource "azurerm_lb_rule" "lbnatrule_standard" {
   frontend_ip_configuration_name = count.index == 0 ? azurerm_lb.frontend_lb[0].frontend_ip_configuration[0].name : azurerm_lb.backend_lb[0].frontend_ip_configuration[0].name
   probe_id                       = azurerm_lb_probe.azure_lb_healprob[count.index].id
   load_distribution              = count.index == 0 ? var.frontend_load_distribution : var.backend_load_distribution
-  enable_floating_ip             = var.enable_floating_ip
+  floating_ip_enabled            = var.enable_floating_ip
 }
 
 resource "azurerm_lb_rule" "lbnatrule_standard_v6" {
@@ -244,7 +244,7 @@ resource "azurerm_lb_rule" "lbnatrule_standard_v6" {
   frontend_ip_configuration_name = count.index == 0 ? azurerm_lb.frontend_lb[0].frontend_ip_configuration[1].name : azurerm_lb.backend_lb[0].frontend_ip_configuration[1].name
   probe_id                       = count.index == 0 ? azurerm_lb_probe.azure_lb_healprob_v6_external[0].id : azurerm_lb_probe.azure_lb_healprob_v6_internal[0].id
   load_distribution              = count.index == 0 ? var.frontend_load_distribution : var.backend_load_distribution
-  enable_floating_ip             = var.enable_floating_ip
+  floating_ip_enabled            = var.enable_floating_ip
   disable_outbound_snat          = true
 }
 
@@ -263,7 +263,7 @@ resource "azurerm_lb_rule" "lbnatrule_external" {
   frontend_ip_configuration_name = azurerm_lb.frontend_lb[0].frontend_ip_configuration[0].name
   probe_id                       = azurerm_lb_probe.azure_lb_healprob[0].id
   load_distribution              = var.frontend_load_distribution
-  enable_floating_ip             = var.enable_floating_ip
+  floating_ip_enabled            = var.enable_floating_ip
 }
 
 resource "azurerm_lb_rule" "lbnatrule_external_v6" {
@@ -280,7 +280,7 @@ resource "azurerm_lb_rule" "lbnatrule_external_v6" {
   frontend_ip_configuration_name = azurerm_lb.frontend_lb[0].frontend_ip_configuration[1].name
   probe_id                       = azurerm_lb_probe.azure_lb_healprob_v6_external[0].id
   load_distribution              = var.frontend_load_distribution
-  enable_floating_ip             = var.enable_floating_ip
+  floating_ip_enabled            = var.enable_floating_ip
   disable_outbound_snat          = true
 }
 
@@ -312,7 +312,7 @@ resource "azurerm_lb_rule" "lbnatrule_internal" {
   frontend_ip_configuration_name = azurerm_lb.backend_lb[0].frontend_ip_configuration[0].name
   probe_id                       = azurerm_lb_probe.azure_lb_healprob[0].id
   load_distribution              = var.backend_load_distribution
-  enable_floating_ip             = var.enable_floating_ip
+  floating_ip_enabled            = var.enable_floating_ip
 }
 
 resource "azurerm_lb_rule" "lbnatrule_internal_v6" {
@@ -329,7 +329,7 @@ resource "azurerm_lb_rule" "lbnatrule_internal_v6" {
   frontend_ip_configuration_name = azurerm_lb.backend_lb[0].frontend_ip_configuration[1].name
   probe_id                       = azurerm_lb_probe.azure_lb_healprob_v6_internal[0].id
   load_distribution              = var.backend_load_distribution
-  enable_floating_ip             = var.enable_floating_ip
+  floating_ip_enabled            = var.enable_floating_ip
   disable_outbound_snat          = true
 }
 
@@ -416,7 +416,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
     installation_type              = module.common.installation_type
     allow_upload_download          = module.common.allow_upload_download
     os_version                     = module.common.os_version
-      template_name                  = local.template_name
+    template_name                  = local.template_name
     module_version                 = module.common.module_version
     template_type                  = "terraform"
     is_blink                       = module.common.is_blink
@@ -454,12 +454,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
     enable_ip_forwarding          = true
     enable_accelerated_networking = true
     ip_configuration {
-      name                                   = "ipconfig1"
-      subnet_id                              = module.vnet.subnets[0]
+      name      = "ipconfig1"
+      subnet_id = module.vnet.subnets[0]
       load_balancer_backend_address_pool_ids = local.create_frontend_lb ? [azurerm_lb_backend_address_pool.frontend_lb_pool[0].id] : (
         length(var.frontend_lb_pool_ids) > 0 ? var.frontend_lb_pool_ids : null
       )
-      primary                                = true
+      primary = true
       dynamic "public_ip_address" {
         for_each = var.instance_level_public_ipv4 ? [1] : []
         content {
@@ -472,13 +472,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
     dynamic "ip_configuration" {
       for_each = var.enable_ipv6 ? [1] : []
       content {
-        name                                   = "ipconfig1-v6"
-        subnet_id                              = module.vnet.subnets[0]
+        name      = "ipconfig1-v6"
+        subnet_id = module.vnet.subnets[0]
         load_balancer_backend_address_pool_ids = local.create_frontend_lb ? [azurerm_lb_backend_address_pool.frontend_lb_pool_v6[0].id] : (
           length(var.frontend_lb_pool_v6_ids) > 0 ? var.frontend_lb_pool_v6_ids : null
         )
-        primary                                = false
-        version                                = "IPv6"
+        primary = false
+        version = "IPv6"
       }
     }
   }
@@ -489,23 +489,23 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
     enable_ip_forwarding          = true
     enable_accelerated_networking = true
     ip_configuration {
-      name                                   = "ipconfig2"
-      subnet_id                              = module.vnet.subnets[1]
+      name      = "ipconfig2"
+      subnet_id = module.vnet.subnets[1]
       load_balancer_backend_address_pool_ids = local.create_backend_lb ? [azurerm_lb_backend_address_pool.backend_lb_pool[0].id] : (
         length(var.backend_lb_pool_ids) > 0 ? var.backend_lb_pool_ids : null
       )
-      primary                                = true
+      primary = true
     }
     dynamic "ip_configuration" {
       for_each = var.enable_ipv6 ? [1] : []
       content {
-        name                                   = "ipconfig2-v6"
-        subnet_id                              = module.vnet.subnets[1]
+        name      = "ipconfig2-v6"
+        subnet_id = module.vnet.subnets[1]
         load_balancer_backend_address_pool_ids = local.create_backend_lb ? [azurerm_lb_backend_address_pool.backend_lb_pool_v6[0].id] : (
           length(var.backend_lb_pool_v6_ids) > 0 ? var.backend_lb_pool_v6_ids : null
         )
-        primary                                = false
-        version                                = "IPv6"
+        primary = false
+        version = "IPv6"
       }
     }
   }

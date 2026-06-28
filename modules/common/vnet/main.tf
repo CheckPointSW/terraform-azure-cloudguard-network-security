@@ -14,11 +14,12 @@ resource "azurerm_subnet" "subnet" {
   depends_on = [
     azurerm_virtual_network.vnet
   ]
-  count                = local.create_new_vnet ? length(var.subnet_names) : 0
-  name                 = var.subnet_names[count.index]
-  virtual_network_name = azurerm_virtual_network.vnet[0].name
-  resource_group_name  = var.resource_group_name
-  address_prefixes     = var.enable_ipv6 ? [var.subnet_prefixes[count.index], var.subnet_ipv6_prefixes[count.index]] : [var.subnet_prefixes[count.index]]
+  count                           = local.create_new_vnet ? length(var.subnet_names) : 0
+  name                            = var.subnet_names[count.index]
+  virtual_network_name            = azurerm_virtual_network.vnet[0].name
+  resource_group_name             = var.resource_group_name
+  address_prefixes                = var.enable_ipv6 ? [var.subnet_prefixes[count.index], var.subnet_ipv6_prefixes[count.index]] : [var.subnet_prefixes[count.index]]
+  default_outbound_access_enabled = var.edge_zone != null && var.edge_zone != "" && var.edge_zone != "None" ? false : true
 }
 
 resource "azurerm_subnet_network_security_group_association" "security_group_frontend_association" {
@@ -118,7 +119,7 @@ resource "azurerm_route_table" "backend" {
       next_hop_in_ip_address = cidrhost(azurerm_subnet.subnet[1].address_prefixes[1], 10)
     }
   }
-  
+
   dynamic "route" {
     for_each = var.enable_ipv6 && var.deployment_type != "single" ? [1] : []
     content {

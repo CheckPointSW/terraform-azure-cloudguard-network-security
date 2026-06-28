@@ -102,10 +102,10 @@ resource "azurerm_network_interface" "nic" {
     azurerm_public_ip.public_ip_v6,
     module.vnet
   ]
-  name                 = "${var.mgmt_name}-eth0"
-  location             = module.common.resource_group_location
-  resource_group_name  = module.common.resource_group_name
-  enable_ip_forwarding = false
+  name                  = "${var.mgmt_name}-eth0"
+  location              = module.common.resource_group_location
+  resource_group_name   = module.common.resource_group_name
+  ip_forwarding_enabled = false
 
   ip_configuration {
     name                          = "ipconfig1"
