@@ -327,9 +327,9 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **installation_type** | Enables selecting installation type (gateway/standalone). | string | gateway;<br />standalone; | "gateway" | No |
 | **vm_size** | Specifies the size of Virtual Machine. | string | A list of valid VM sizes (e.g., "Standard_D4ds_v5", "Standard_D8ds_v5", etc). | N/A | Yes |
 | **disk_size** | Storage data disk size (GB). | string | A number in the range 100 - 3995 (GB). | "200" | No |
-| **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210";<br />"R8220"; | N/A | Yes |
+| **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210"; | N/A | Yes |
 | **vm_os_sku** | A SKU of the image to be deployed. | string | "sg-byol" - BYOL license;<br />"sg-ngtp" - NGTP PAYG license;<br />"sg-ngtx" - NGTX PAYG license; | N/A | Yes |
-| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210";<br />"check-point-cg-r8220"; | N/A | Yes |
+| **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210"; | N/A | Yes |
 | **allow_upload_download**| Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point. | boolean | true;<br />false; | N/A | Yes |
 | **admin_shell** | Enables selecting different admin shells. | string | /etc/cli.sh;<br />/bin/bash;<br />/bin/csh;<br />/bin/tcsh; | "/etc/cli.sh" | No |
 | **bootstrap_script** | An optional script to run on the initial boot. | string | Bootstrap script example:<br />"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt" | "" | No |

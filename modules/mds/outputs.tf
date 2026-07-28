@@ -43,11 +43,6 @@ output "public_ip_dns_name" {
   value       = azurerm_public_ip.public_ip.fqdn
 }
 
-output "public_ipv6_address" {
-  description = "The IPv6 public IP address of the MDS. Null when IPv6 is disabled."
-  value       = var.enable_ipv6 ? azurerm_public_ip.public_ip_v6[0].ip_address : null
-}
-
 output "vm_id" {
   description = "The ID of the MDS virtual machine."
   value       = azurerm_virtual_machine.mds_vm_instance.id
