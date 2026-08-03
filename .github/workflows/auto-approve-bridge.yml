@@ -1,0 +1,31 @@
+# Auto-approve bridge caller stub for CheckPointSW/terraform-azure-cloudguard-network-security (DOPS-12542).
+# Must live on the repo's DEFAULT branch — workflow_dispatch only fires from there.
+# The auto-approve Lambda dispatches this; it calls the central reusable bridge, which
+# (as github-actions[bot], write access -> counts) approves after re-verifying the head
+# sha + the pinned validator-App success check, then enables auto-merge.
+name: auto-approve-bridge
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:  { required: true, type: string }
+      head_sha:   { required: true, type: string }
+      check_name: { required: true, type: string }
+
+permissions:
+  checks: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  call:
+    uses: CheckPointSW/.github/.github/workflows/auto-approve-bridge.yml@main
+    permissions:
+      checks: read
+      pull-requests: write
+      contents: read
+    # Pass the org secret AUTO_APPROVER_APP_ID (the pinned validator App id) to the reusable bridge.
+    secrets: inherit
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      head_sha: ${{ inputs.head_sha }}
+      check_name: ${{ inputs.check_name }}
