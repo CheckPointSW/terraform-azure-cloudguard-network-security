@@ -242,10 +242,15 @@ variable "vm_os_sku" {
   type        = string
 
   validation {
+    # The '-gen2' SKUs are the value composed internally when hyper_v_generation = "V2";
+    # users pass the base SKU, so they are intentionally omitted from the error message.
     condition = contains([
       "sg-byol",
       "sg-ngtp",
       "sg-ngtx",
+      "sg-byol-gen2",
+      "sg-ngtp-gen2",
+      "sg-ngtx-gen2",
       "mgmt-byol",
       "mgmt-25"
     ], var.vm_os_sku)

@@ -31,3 +31,13 @@ variable "storage_type" {
     error_message = "Variable [storage_type] must be one of 'Standard_LRS', 'Premium_LRS'."
   }
 }
+
+variable "hyper_v_generation" {
+  description = "The Hyper-V generation of the custom image. Select V2 to create a Generation 2 image. Only applies when a custom image URI is provided. Changing this value forces a new image to be created."
+  type        = string
+  default     = "V1"
+  validation {
+    condition     = contains(["V1", "V2"], var.hyper_v_generation)
+    error_message = "Variable [hyper_v_generation] must be one of 'V1', 'V2'."
+  }
+}

@@ -16,7 +16,7 @@ module "common" {
   disk_size                      = var.disk_size
   is_blink                       = var.is_blink
   os_version                     = var.os_version
-  vm_os_sku                      = var.vm_os_sku
+  vm_os_sku                      = "${var.vm_os_sku}${var.hyper_v_generation == "V2" ? "-gen2" : ""}"
   vm_os_offer                    = var.vm_os_offer
   authentication_type            = var.authentication_type
   serial_console_password_hash   = var.serial_console_password_hash
@@ -356,6 +356,7 @@ module "vm_boot_diagnostics_storage" {
 module "custom_image" {
   source               = "../common/custom-image"
   source_image_vhd_uri = var.source_image_vhd_uri
+  hyper_v_generation   = var.hyper_v_generation
   resource_group_name  = module.common.resource_group_name
   location             = module.common.resource_group_location
   storage_type         = var.storage_account_type

@@ -69,6 +69,20 @@ variable "source_image_vhd_uri" {
   default     = "noCustomUri"
 }
 
+variable "hyper_v_generation" {
+  description = "The Hyper-V generation of the virtual machine. Set to 'V2' to deploy a Generation 2 VM, or 'V1' for Generation 1. 'V2' is supported on Gaia version R82.10 or later and is not supported with installation_type 'standalone'."
+  type        = string
+  default     = "V1"
+  validation {
+    condition     = contains(["V1", "V2"], var.hyper_v_generation)
+    error_message = "Variable [hyper_v_generation] must be one of 'V1', 'V2'."
+  }
+  validation {
+    condition     = var.hyper_v_generation != "V2" || var.source_image_vhd_uri != "noCustomUri" || (!contains(["R8110", "R8120", "R82"], var.os_version) && var.installation_type != "standalone")
+    error_message = "hyper_v_generation can be set to 'V2' only for a custom image, or for a marketplace image on Gaia version R82.10 or later and not with installation_type 'standalone'."
+  }
+}
+
 variable "admin_username" {
   description = "Administrator username of deployed VM. Due to Azure limitations 'notused' name can be used."
   type        = string
