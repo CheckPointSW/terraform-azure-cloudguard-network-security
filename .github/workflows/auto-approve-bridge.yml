@@ -39,9 +39,9 @@ jobs:
           CHECK_NAME: ${{ inputs.check_name }}
           REPO: ${{ github.repository }}
           # SECURITY: pin the approver App id so a caller-supplied check_name cannot be satisfied by
-          # an unrelated green check. Must match the Lambda's APPROVE_APP_ID. Sourced from an org
-          # secret scoped to this repo (the id itself is a public identifier, not a secret).
-          APPROVER_APP_ID: ${{ secrets.AUTO_APPROVER_APP_ID }}
+          # an unrelated green check. Must match the Lambda's APPROVE_APP_ID. This is a public
+          # identifier (not a secret), so it is a plain literal — no org secret/variable needed.
+          APPROVER_APP_ID: "4287270"
         run: |
           set -euo pipefail
           if ! echo "$PR_NUMBER" | grep -qE '^[0-9]+$'; then
