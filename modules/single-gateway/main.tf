@@ -263,6 +263,7 @@ module "vm_boot_diagnostics_storage" {
 module "custom_image" {
   source               = "../common/custom-image"
   source_image_vhd_uri = var.source_image_vhd_uri
+  hyper_v_generation   = var.hyper_v_generation
   resource_group_name  = module.common.resource_group_name
   location             = module.common.resource_group_location
   storage_type         = var.storage_account_type

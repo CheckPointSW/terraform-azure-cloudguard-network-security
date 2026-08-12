@@ -202,6 +202,7 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **os_version** | GAIA OS version. | string | "R8110";<br />"R8120";<br />"R82";<br />"R8210"; | N/A | Yes |
 | **vm_os_sku** | A SKU of the image to be deployed. | string | "sg-byol" - BYOL license;<br />"sg-ngtp" - NGTP PAYG license;<br />"sg-ngtx" - NGTX PAYG license; | N/A | Yes |
 | **vm_os_offer** | The name of the image offer to be deployed. | string | "check-point-cg-r8110";<br />"check-point-cg-r8120";<br />"check-point-cg-r82";<br />"check-point-cg-r8210"; | N/A | Yes |
+| **hyper_v_generation** | The Hyper-V generation of the virtual machine. Set to 'V2' to deploy a Generation 2 VM, or 'V1' for Generation 1. 'V2' is supported on Gaia version R82.10 or later. | string | "V1";<br />"V2"; | "V1" | No |
 | **allow_upload_download** | Automatically download Blade Contracts and other important data. Improve product experience by sending data to Check Point. | boolean | true;<br />false; | N/A | Yes |
 | **admin_shell** | Enables selecting different admin shells. | string | /etc/cli.sh;<br />/bin/bash;<br />/bin/csh;<br />/bin/tcsh; | "/etc/cli.sh" | No |
 | **bootstrap_script** | An optional script to run on the initial boot. | string | Bootstrap script example:<br />"touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt" | "" | No |
