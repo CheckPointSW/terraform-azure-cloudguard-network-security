@@ -238,6 +238,20 @@ variable "custom_metrics" {
   }
 }
 
+variable "upgrade" {
+  description = "Indicates whether this deployment is an upgrade of an existing CloudGuard NVA. Set to 'yes' during a side-by-side upgrade so usage metering is not restarted as a new trial on the target NVA."
+  type        = string
+  default     = "no"
+
+  validation {
+    condition = contains([
+      "yes",
+      "no"
+    ], var.upgrade)
+    error_message = "Variable [upgrade] must be either 'yes' or 'no'."
+  }
+}
+
 //********************** Networking Configurations **************************//
 variable "routing_intent_internet_traffic" {
   description = "Enable/Disable routing intent for internet traffic."

@@ -253,6 +253,9 @@ resource "azapi_resource" "managed_app" {
         },
         customLicenseType = {
           value = var.custom_license_type
+        },
+        upgrading = {
+          value = var.upgrade
         }
       },
       managedResourceGroupId = "/subscriptions/${var.subscription_id}/resourcegroups/${var.nva_rg_name}"

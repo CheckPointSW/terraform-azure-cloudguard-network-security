@@ -56,6 +56,7 @@ module "example_module" {
   serial_console_password_hash    = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   bgp_asn                         = "64512"
   custom_metrics                  = "yes"
+  upgrade                         = "no"
   routing_intent_internet_traffic = "yes"
   routing_intent_private_traffic  = "yes"
   existing_public_ip              = ""
@@ -115,6 +116,7 @@ You can define if you want to deploy the NVA along side a new Virtual WAN or to 
 | **maintenance_mode_password_hash** | (Optional) Maintenance mode password hash, relevant only for R81.20 and higher versions. | string | N/A | "" | No |
 | **bgp_asn** | The BGP autonomous system number. | string | A number in the range 64512-65534, excluding 65515 and 65520. | "64512" | No |
 | **custom_metrics** | Indicates whether CloudGuard Metrics will be used for gateway monitoring. | string | yes;<br/>no; | "yes" | No |
+| **upgrade** | Indicates whether this deployment is an upgrade of an existing CloudGuard NVA. Set to "yes" during a side-by-side upgrade. | string | yes;<br/>no; | "no" | No |
 | **routing_intent_internet_traffic** | Set routing intent policy to allow internet traffic through the new nva. | string | yes;<br/>no.<br/>Please verify routing-intent is configured successfully post-deployment. | "yes" | No |
 | **routing_intent_private_traffic** | Set routing intent policy to allow private traffic through the new nva. | string | yes;<br/>no.<br/>Please verify routing-intent is configured successfully post-deployment. | "yes" | No |
 | **existing_public_ip** | Existing public IP resource to attach to the newly deployed NVA. | string | A resource ID of the public IP resource. Required when new_public_ip is "no"; must be empty when new_public_ip is "yes". | "" | No |
