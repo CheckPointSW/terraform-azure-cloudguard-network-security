@@ -37,7 +37,6 @@ module "example_module" {
   subscription_id                 = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
   # Basic Configurations Variables
-  tenant_id           = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   resource_group_name = "checkpoint-ha-terraform"
   cluster_name        = "checkpoint-ha-terraform"
   location            = "eastus"
