@@ -252,9 +252,13 @@ variable "vm_os_sku" {
       "sg-ngtp-gen2",
       "sg-ngtx-gen2",
       "mgmt-byol",
-      "mgmt-25"
+      "mgmt-25",
+      "mgmt-byol-blink",
+      "mgmt-25-blink",
+      "mds-byol-blink",
+      "mds-25-blink"
     ], var.vm_os_sku)
-    error_message = "Variable [vm_os_sku] must be one of the following: 'sg-byol', 'sg-ngtp', 'sg-ngtx', 'mgmt-byol', 'mgmt-25'."
+    error_message = "Variable [vm_os_sku] must be one of the following: 'sg-byol', 'sg-ngtp', 'sg-ngtx', 'mgmt-byol', 'mgmt-25', 'mgmt-byol-blink', 'mgmt-25-blink', 'mds-byol-blink', 'mds-25-blink'."
   }
 }
 

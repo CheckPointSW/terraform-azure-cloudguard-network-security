@@ -14,9 +14,9 @@ module "common" {
   allow_upload_download          = var.allow_upload_download
   vm_size                        = var.vm_size
   disk_size                      = var.disk_size
-  is_blink                       = false
+  is_blink                       = local.is_blink
   os_version                     = var.os_version
-  vm_os_sku                      = var.vm_os_sku
+  vm_os_sku                      = local.vm_os_sku
   vm_os_offer                    = var.vm_os_offer
   authentication_type            = var.authentication_type
   serial_console_password_hash   = var.serial_console_password_hash

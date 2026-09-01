@@ -2,6 +2,13 @@ locals {
   module_name    = "mds_terraform_registry"
   module_version = "1.0.9"
 
+  // Image selection - MDS deploys its dedicated MDS Blink plans (mds-byol-blink / mds-25-blink)
+  // on every OS version except R81.10, which has no Blink image. Callers still pass the
+  // management SKU (mgmt-byol / mgmt-25) for backward-compat (automation relies on it); on the
+  // Blink path we map "mgmt-" -> "mds-" and append "-blink". R81.10 keeps the caller SKU unchanged.
+  is_blink  = var.os_version != "R8110"
+  vm_os_sku = local.is_blink ? "${replace(var.vm_os_sku, "mgmt-", "mds-")}-blink" : var.vm_os_sku
+
   // NSG base security rules
   nsg_base_security_rules = [
     {
