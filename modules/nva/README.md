@@ -14,6 +14,10 @@ please see the [CloudGuard Network for Azure Virtual WAN Deployment Guide](https
 ## Usage
 Follow best practices for using CGNS modules on [the root page](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest).
 
+**Authentication:** choose your preferred login method to Azure before deploying:
+1. **Using Service Principal** - set `authentication_method = "Service Principal"` and provide `client_id`/`client_secret`, as shown below.
+2. **Using Azure CLI / Managed Identity / `ARM_*` environment variables** - set `authentication_method = "Azure CLI"`, run `az login`, and omit `client_id`/`client_secret` entirely.
+
 **Example:**
 ```hcl
 provider "azurerm" {
@@ -24,7 +28,7 @@ module "example_module" {
   source  = "CheckPointSW/cloudguard-network-security/azure//modules/nva"
   version = "~> 1.0"
 
-  # Authentication Variables
+  # Authentication with Service Principal
   authentication_method = "Service Principal"
   client_secret         = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   client_id             = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -78,7 +82,7 @@ You can define if you want to deploy the NVA along side a new Virtual WAN or to 
   ```
   vwan_name               = "tf-vwan"
   vwan_hub_name           = "tf-vwan-hub"
-  vwan_hub_address_prefix = "10.0.0.0/16
+  vwan_hub_address_prefix = "10.0.0.0/16"
   ```
 - To deploy using an existing Virtual WAN, leave the `vwan_hub_address_prefix` empty:
   ```
@@ -93,8 +97,8 @@ You can define if you want to deploy the NVA along side a new Virtual WAN or to 
 | **authentication_method** | The authentication method used to deploy the solution. | string | "Service Principal";<br/>"Azure CLI"; | N/A | Yes |
 | **subscription_id** | The subscription ID is used to pay for Azure cloud services. | string | N/A | N/A | Yes |
 | **tenant_id** | The tenant ID of the Service Principal used to deploy the solution. | string | N/A | N/A | Yes |
-| **client_id** | The client ID of the Service Principal used to deploy the solution. | string | N/A | N/A | Yes |
-| **client_secret** | The client secret value of the Service Principal used to deploy the solution. | string | N/A | N/A | Yes |
+| **client_id** | The client ID of the Service Principal used to deploy the solution. Required only when `authentication_method = "Service Principal"`; otherwise leave unset to authenticate via Azure CLI, Managed Identity, or `ARM_*` environment variables. | string | N/A | null | No |
+| **client_secret** | The client secret value of the Service Principal used to deploy the solution. Required only when `authentication_method = "Service Principal"`; otherwise leave unset to authenticate via Azure CLI, Managed Identity, or `ARM_*` environment variables. | string | N/A | null | No |
 | **resource_group_name** | The name of the resource group that will contain the managed application. | string | Resource group names only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period. | N/A | Yes |
 | **location** | The region where the resources will be deployed at. | string | The full list of supported Azure regions can be found at https://learn.microsoft.com/en-us/azure/virtual-wan/virtual-wan-locations-partners#locations. | N/A | Yes |
 | **tags** | Tags can be associated either globally across all resources or scoped to specific resource types. For example, a global tag can be defined as: {"all": {"example": "example"}}.<br/>Supported resource types for tag assignment include:<br>`all` (Applies tags universally to all resource instances)<br/>`resource-group` (Applies tags to managed application resource group)<br/>`virtual-wan`<br/>`virtual-hub`<br/>`managed-identity` (Applies tags to the managed identity of the managed application)<br/>`managed-application`<br/>`network-virtual-appliance`<br/>**Important:** When identical tag keys are defined both globally under `all` and within a specific resource scope, the tag value specified under `all` overrides the resource-specific tag. | map(map(string)) | N/A | {} | No |

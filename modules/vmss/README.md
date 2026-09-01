@@ -21,6 +21,10 @@ please see the [CloudGuard Network for Azure Virtual Machine Scale Sets (VMSS) D
 ## Usage
 Follow best practices for using CGNS modules on [the root page](https://registry.terraform.io/modules/CheckPointSW/cloudguard-network-security/azure/latest).
 
+**Authentication:** choose your preferred login method to Azure before deploying:
+1. **Using Service Principal** - set `client_id` and `client_secret`, as shown in the examples below.
+2. **Using Azure CLI / Managed Identity / `ARM_*` environment variables** - run `az login`, then omit `client_id` and `client_secret` entirely.
+
 ### Example Deployments
 
 <details>
@@ -36,7 +40,7 @@ module "example_module" {
   source  = "CheckPointSW/cloudguard-network-security/azure//modules/vmss"
   version = "~> 1.0"
 
-  # Authentication Variables
+  # Authentication with Service Principal
   client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   client_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   tenant_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -117,7 +121,7 @@ module "example_module" {
   source  = "CheckPointSW/cloudguard-network-security/azure//modules/vmss"
   version = "~> 1.0"
 
-  # Authentication Variables
+  # Authentication with Service Principal
   client_secret                   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   client_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   tenant_id                       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -394,8 +398,8 @@ For more information, refer to the [Azure Terraform documentation](https://regis
 ## Module's variables:
 | Name | Description | Type | Allowed values | Default | Required |
 | ---- | ----------- | ---- | -------------- | ------- | -------- |
-| **client_secret** | The client secret value of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
-| **client_id** | The client ID of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
+| **client_secret** | The client secret value of the Service Principal used to deploy the solution. Optional - omit to authenticate via Azure CLI, Managed Identity, or ARM_* environment variables. | string | N/A | null | No |
+| **client_id** | The client ID of the Service Principal used to deploy the solution. Optional - omit to authenticate via Azure CLI, Managed Identity, or ARM_* environment variables. | string | N/A | null | No |
 | **tenant_id** | The tenant ID of the Service Principal used to deploy the solution | string | N/A | N/A | Yes |
 | **subscription_id** | The subscription ID is used to pay for Azure cloud services | string | N/A | N/A | Yes |
 | **resource_group_name** | The name of the resource group that will contain the contents of the deployment. | string | Resource group names only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.<br />Note: Resource group name must not contain reserved words based on: sk40179. | N/A | Yes |
