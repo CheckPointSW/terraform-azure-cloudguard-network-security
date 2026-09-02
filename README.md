@@ -63,14 +63,16 @@ security_rules = [
 
 ## Prerequisites
 - [Terraform](https://www.terraform.io/downloads.html) version 1.9 or higher
-- Azure Service Principal with required permissions (see [Required Permissions](#required-permissions) below)
+- An Azure identity (Service Principal, Managed Identity, or your Azure CLI user) with required permissions (see [Required Permissions](#required-permissions) below)
 
 ---
 
 ## Deployment Steps
 
 ### 1. Configure Your Terraform Module
-Create a `main.tf` file with the required module and **mandatory authentication variables**:
+Create a `main.tf` file with the required module. `tenant_id` and `subscription_id` are mandatory for all modules. Choose your preferred login method to Azure for `client_id`/`client_secret`:
+1. **Using Service Principal** - set `client_id` and `client_secret`, as shown below.
+2. **Using Azure CLI / Managed Identity / `ARM_*` environment variables (recommended)** - run `az login`, then omit `client_id` and `client_secret` entirely; the provider falls back to your CLI session, Managed Identity, or `ARM_*` environment variables. See [Terraform Azure Provider Authentication](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret) for details.
 
 ```hcl
 provider "azurerm" {
@@ -81,7 +83,7 @@ module "example_module" {
   source  = "CheckPointSW/cloudguard-network-security/azure//modules/{module_name}"
   version = "~> 1.0"
 
-  # Authentication Variables (Required)
+  # Authentication with Service Principal
   client_secret   = "<your-client-secret>"
   client_id       = "<your-client-id>"
   tenant_id       = "<your-tenant-id>"
@@ -90,8 +92,6 @@ module "example_module" {
   # Add additional module-specific variables here
 }
 ```
-
-**Important:** All four authentication variables (`client_secret`, `client_id`, `tenant_id`, `subscription_id`) are mandatory for all modules.
 
 ---
 
@@ -113,7 +113,7 @@ terraform apply
  
 ## Required Permissions
 
-The Azure Service Principal used for authentication must have the following permissions:
+The Azure identity used for authentication (Service Principal, Managed Identity, or Azure CLI user) must have the following permissions:
 
 - **Contributor** role - for creating and managing Azure resources
 - **User Access Administrator** role - for role assignments (required for VMSS deployments)

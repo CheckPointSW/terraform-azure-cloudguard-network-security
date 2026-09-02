@@ -7,6 +7,10 @@ variable "authentication_method" {
     "Service Principal"], var.authentication_method)
     error_message = "Valid values for authentication_method are 'Azure CLI','Service Principal'"
   }
+  validation {
+    condition     = var.authentication_method != "Service Principal" || (var.client_id != null && var.client_secret != null)
+    error_message = "client_id and client_secret are required when authentication_method is 'Service Principal'."
+  }
 }
 
 variable "subscription_id" {
@@ -20,14 +24,16 @@ variable "tenant_id" {
 }
 
 variable "client_id" {
-  description = "Application ID(Client ID)"
+  description = "Application ID(Client ID). Optional - if omitted, authentication falls back to Azure CLI, Managed Identity, or ARM_* environment variables."
   type        = string
+  default     = null
 }
 
 variable "client_secret" {
-  description = "A secret string that the application uses to prove its identity when requesting a token. Also can be referred to as application password."
+  description = "A secret string that the application uses to prove its identity when requesting a token. Also can be referred to as application password. Optional - if omitted, authentication falls back to Azure CLI, Managed Identity, or ARM_* environment variables."
   type        = string
   sensitive   = true
+  default     = null
 }
 
 //********************** Basic Configurations Variables **************************//
