@@ -72,7 +72,7 @@ variable "source_image_vhd_uri" {
 }
 
 variable "hyper_v_generation" {
-  description = "The Hyper-V generation of the virtual machine. Set to 'V2' to deploy a Generation 2 VM, or 'V1' for Generation 1. 'V2' is supported on Gaia version R82.10 or later and is not supported with installation_type 'standalone'."
+  description = "The Hyper-V generation of the virtual machine. Set to 'V2' to deploy a Generation 2 VM, or 'V1' for Generation 1. 'V2' is supported on Gaia version R82.10 or later."
   type        = string
   default     = "V1"
   validation {
@@ -80,8 +80,8 @@ variable "hyper_v_generation" {
     error_message = "Variable [hyper_v_generation] must be one of 'V1', 'V2'."
   }
   validation {
-    condition     = var.hyper_v_generation != "V2" || var.source_image_vhd_uri != "noCustomUri" || (!contains(["R8110", "R8120", "R82"], var.os_version) && var.installation_type != "standalone")
-    error_message = "hyper_v_generation can be set to 'V2' only for a custom image, or for a marketplace image on Gaia version R82.10 or later and not with installation_type 'standalone'."
+    condition     = var.hyper_v_generation != "V2" || var.source_image_vhd_uri != "noCustomUri" || !contains(["R8110", "R8120", "R82"], var.os_version)
+    error_message = "hyper_v_generation can be set to 'V2' only for a custom image, or for a marketplace image on Gaia version R82.10 or later."
   }
 }
 
