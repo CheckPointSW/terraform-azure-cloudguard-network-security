@@ -5,9 +5,10 @@ locals {
 
   // Image selection - management deploys the Blink image on every OS version except R81.10,
   // which has no Blink image. The caller-supplied vm_os_sku / vm_os_offer inputs are kept
-  // unchanged (automation relies on them); we only append the "-blink" suffix where supported.
+  // unchanged (automation relies on them); we only append the "-blink" / "-gen2" suffixes.
+  is_gen2   = var.hyper_v_generation == "V2"
   is_blink  = var.os_version != "R8110"
-  vm_os_sku = local.is_blink ? "${var.vm_os_sku}-blink" : var.vm_os_sku
+  vm_os_sku = "${local.is_blink ? "${var.vm_os_sku}-blink" : var.vm_os_sku}${local.is_gen2 ? "-gen2" : ""}"
 
   // Calculate IPv6 NIC address - use vnet module output for consistency with IPv4
   nic_ipv6_address = var.enable_ipv6 ? cidrhost(module.vnet.subnet_ipv6_prefixes[0], 10) : null
