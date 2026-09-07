@@ -435,7 +435,6 @@ resource "azurerm_virtual_machine" "vm_instance_availability_set" {
       external_private_addresses     = azurerm_network_interface.nic_vip.ip_configuration[1].private_ip_address
       enable_custom_metrics          = var.enable_custom_metrics ? "yes" : "no"
       admin_shell                    = var.admin_shell
-      smart_1_cloud_token            = count.index == 0 ? var.smart_1_cloud_token_a : var.smart_1_cloud_token_b
       serial_console_password_hash   = var.serial_console_password_hash
       maintenance_mode_password_hash = var.maintenance_mode_password_hash
     })
@@ -532,7 +531,6 @@ resource "azurerm_virtual_machine" "vm_instance_availability_zone" {
       external_private_addresses     = cidrhost(module.vnet.subnet_prefixes[0], var.frontend_private_ip_start_host + 2)
       enable_custom_metrics          = var.enable_custom_metrics ? "yes" : "no"
       admin_shell                    = var.admin_shell
-      smart_1_cloud_token            = count.index == 0 ? var.smart_1_cloud_token_a : var.smart_1_cloud_token_b
       serial_console_password_hash   = var.serial_console_password_hash
       maintenance_mode_password_hash = var.maintenance_mode_password_hash
     })
@@ -601,7 +599,6 @@ resource "azurerm_linux_virtual_machine" "vm_instance_availability_zone_extended
     external_private_addresses     = cidrhost(module.vnet.subnet_prefixes[0], var.frontend_private_ip_start_host + 2)
     enable_custom_metrics          = var.enable_custom_metrics ? "yes" : "no"
     admin_shell                    = var.admin_shell
-    smart_1_cloud_token            = count.index == 0 ? var.smart_1_cloud_token_a : var.smart_1_cloud_token_b
     serial_console_password_hash   = var.serial_console_password_hash
     maintenance_mode_password_hash = var.maintenance_mode_password_hash
   }))
