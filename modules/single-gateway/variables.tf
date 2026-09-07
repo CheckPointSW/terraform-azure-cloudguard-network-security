@@ -228,14 +228,6 @@ variable "zone" {
   }
 }
 
-//********************** Smart-1 Cloud Variables **************************//
-variable "smart_1_cloud_token" {
-  description = "Smart-1 Cloud Token."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
 //********************** Management Variables **************************//
 variable "management_GUI_client_network" {
   description = "Allowed GUI clients - GUI clients network CIDR. Use '0.0.0.0/0' to allow access from any IPv4 address."

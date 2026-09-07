@@ -66,10 +66,6 @@ module "example_module" {
   availability_type              = "Availability Zone"
   availability_zones             = ["1", "2"]
 
-  # Smart-1 Cloud Variables
-  smart_1_cloud_token_a = "xxxxxxxxxxxx"
-  smart_1_cloud_token_b = "xxxxxxxxxxxx"
-
   # Networking Variables
   vnet_name                       = "checkpoint-ha-vnet"
   frontend_subnet_name            = "Frontend"
@@ -213,8 +209,6 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **enable_custom_metrics** | Indicates whether CloudGuard Metrics will be used for Cluster members monitoring. | boolean | true;<br />false; | true | No |
 | **availability_type** | Optional parameter, specifies whether to deploy the solution based on Azure Availability Set or Azure Availability Zone. | string | "Availability Zone";<br />"Availability Set"; | "Availability Zone" | No |
 | **availability_zones** | Optional parameter, specifies in which zones to deploy the solution (up to two zones). | list(string) | ["1"];<br />["1", "2"]; | [] | No |
-| **smart_1_cloud_token_a** | Smart-1 Cloud token to connect automatically ***Member A*** to Check Point's Security Management as a Service. | string | A valid token copied from the Connect Gateway screen in the Smart-1 Cloud portal. | "" | No |
-| **smart_1_cloud_token_b** | Smart-1 Cloud token to connect automatically ***Member B*** to Check Point's Security Management as a Service. | string | A valid token copied from the Connect Gateway screen in the Smart-1 Cloud portal. | "" | No |
 | **vnet_name** | The name of the virtual network that will be created. | string | The name must begin with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. | N/A | Yes |
 | **existing_vnet_resource_group** | The name of the resource group where the Virtual Network is located. Required when using an existing Virtual Network. | string | N/A | "" | No |
 | **frontend_subnet_name** | The Virtual Network subnet name for the frontend interface. | string | N/A | N/A | Yes |

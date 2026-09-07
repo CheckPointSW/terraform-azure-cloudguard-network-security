@@ -325,7 +325,6 @@ resource "azurerm_virtual_machine" "single_gateway_vm_instance" {
       admin_shell                    = var.admin_shell
       sic_key                        = var.sic_key
       management_GUI_client_network  = var.management_GUI_client_network
-      smart_1_cloud_token            = var.smart_1_cloud_token
       enable_custom_metrics          = var.enable_custom_metrics ? "yes" : "no"
       serial_console_password_hash   = var.serial_console_password_hash
       maintenance_mode_password_hash = var.maintenance_mode_password_hash
@@ -393,7 +392,6 @@ resource "azurerm_linux_virtual_machine" "single_gateway_vm_instance_extended" {
     admin_shell                    = var.admin_shell
     sic_key                        = var.sic_key
     management_GUI_client_network  = var.management_GUI_client_network
-    smart_1_cloud_token            = var.smart_1_cloud_token
     enable_custom_metrics          = var.enable_custom_metrics ? "yes" : "no"
     serial_console_password_hash   = var.serial_console_password_hash
     maintenance_mode_password_hash = var.maintenance_mode_password_hash

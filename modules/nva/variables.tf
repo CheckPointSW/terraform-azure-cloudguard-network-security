@@ -312,42 +312,6 @@ variable "new_public_ip" {
   }
 }
 
-//********************** Smart-1 Cloud Configurations Variables **************************//
-variable "smart1_cloud_token_a" {
-  description = "Smart-1 Cloud Token, for configuring member A."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "smart1_cloud_token_b" {
-  description = "Smart-1 Cloud Token, for configuring member B."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "smart1_cloud_token_c" {
-  description = "Smart-1 Cloud Token, for configuring member C."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "smart1_cloud_token_d" {
-  description = "Smart-1 Cloud Token, for configuring member D."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "smart1_cloud_token_e" {
-  description = "Smart-1 Cloud Token, for configuring member E."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
 //********************** Marketplace Plan Configurations Variables **************************//
 variable "plan_product" {
   description = "Use the following plan when deploying with terraform: cp-vwan-managed-app."

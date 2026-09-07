@@ -70,9 +70,6 @@ module "example_module" {
   enable_custom_metrics          = true
   zone                           = ""
 
-  # Smart-1 Cloud Variables
-  smart_1_cloud_token = "xxxxxxxxxxxx"
-
   # Management Variables
   management_GUI_client_network = "0.0.0.0/0"
 
@@ -136,9 +133,6 @@ module "example_module" {
   bootstrap_script               = "touch /home/admin/bootstrap.txt; echo 'hello_world' > /home/admin/bootstrap.txt"
   enable_custom_metrics          = true
   zone                           = ""
-
-  # Smart-1 Cloud Variables
-  smart_1_cloud_token = "xxxxxxxxxxxx"
 
   # Management Variables
   management_GUI_client_network = "0.0.0.0/0"
@@ -341,7 +335,6 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **is_blink** | Define if blink image is used for deployment. | boolean | true;<br />false; | true | No |
 | **enable_custom_metrics**| Indicates whether CloudGuard Metrics will be used for gateway monitoring. | boolean | true;<br />false; | true | No |
 | **zone** | Optional parameter, specifies the Availability Zone the solution should be deployed in. | string | "1" | "" | No |
-| **smart_1_cloud_token** | Smart-1 Cloud token to connect automatically ***Gateway*** to Check Point's Security Management as a Service. Follow these instructions to quickly connect this member to Smart-1 Cloud. | string | A valid token copied from the Connect Gateway screen in Smart-1 Cloud portal. | "" | No |
 | **management_GUI_client_network** | Allowed GUI clients - GUI clients network CIDR. Use "0.0.0.0/0" to allow access from any IPv4 address. Used by the embedded management server when deploying as standalone; ignored for pure gateway deployments. | string | A valid IPv4 CIDR | "0.0.0.0/0" | No |
 | **vnet_name** | The name of virtual network that will be created. | string | The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens. | N/A | Yes |
 | **existing_vnet_resource_group** | The name of the resource group where the Virtual Network is located. Required when using an existing Virtual Network. | string | N/A | "" | No |

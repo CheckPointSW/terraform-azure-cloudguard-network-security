@@ -219,21 +219,6 @@ resource "azapi_resource" "managed_app" {
         hubPeers = {
           value = module.vwan.hub_virtual_router_ips
         },
-        smart1CloudTokenA = {
-          value = var.smart1_cloud_token_a
-        },
-        smart1CloudTokenB = {
-          value = var.smart1_cloud_token_b
-        },
-        smart1CloudTokenC = {
-          value = var.smart1_cloud_token_c
-        },
-        smart1CloudTokenD = {
-          value = var.smart1_cloud_token_d
-        },
-        smart1CloudTokenE = {
-          value = var.smart1_cloud_token_e
-        },
         publicIPIngress = {
           value = (var.new_public_ip == "yes" || length(var.existing_public_ip) > 0) ? "yes" : "no"
         },

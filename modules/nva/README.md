@@ -65,13 +65,6 @@ module "example_module" {
   routing_intent_private_traffic  = "yes"
   existing_public_ip              = ""
   new_public_ip                   = "yes"
-
-  # Smart-1 Cloud Configurations Variables
-  smart1_cloud_token_a = ""
-  smart1_cloud_token_b = ""
-  smart1_cloud_token_c = ""
-  smart1_cloud_token_d = ""
-  smart1_cloud_token_e = ""
 }
 ```
 
@@ -125,8 +118,3 @@ You can define if you want to deploy the NVA along side a new Virtual WAN or to 
 | **routing_intent_private_traffic** | Set routing intent policy to allow private traffic through the new nva. | string | yes;<br/>no.<br/>Please verify routing-intent is configured successfully post-deployment. | "yes" | No |
 | **existing_public_ip** | Existing public IP resource to attach to the newly deployed NVA. | string | A resource ID of the public IP resource. Required when new_public_ip is "no"; must be empty when new_public_ip is "yes". | "" | No |
 | **new_public_ip** | Deploy a new public IP resource as part of the managed app and attach to the NVA. | string | yes — create a new public IP (existing_public_ip must be empty);<br/>no — use existing_public_ip (must be provided); | "no" | No |
-| **smart1_cloud_token_a** | Smart-1 Cloud token to connect automatically ***NVA instance a*** to Check Point's Security Management as a Service.<br/><br/>Follow these instructions to quickly connect this member to Smart-1 Cloud - [SK180501](https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk180501). | string | A valid token copied from the Connect Gateway screen in Smart-1 Cloud portal. | "" | No |
-| **smart1_cloud_token_b** | Smart-1 Cloud token to connect automatically ***NVA instance b*** to Check Point's Security Management as a Service.<br/><br/>Follow these instructions to quickly connect this member to Smart-1 Cloud - [SK180501](https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk180501). | string | A valid token copied from the Connect Gateway screen in Smart-1 Cloud portal. | "" | No |
-| **smart1_cloud_token_c** | Smart-1 Cloud token to connect automatically ***NVA instance c*** to Check Point's Security Management as a Service.<br/><br/>Follow these instructions to quickly connect this member to Smart-1 Cloud - [SK180501](https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk180501). | string | A valid token copied from the Connect Gateway screen in Smart-1 Cloud portal. | "" | No |
-| **smart1_cloud_token_d** | Smart-1 Cloud token to connect automatically ***NVA instance d*** to Check Point's Security Management as a Service.<br/><br/>Follow these instructions to quickly connect this member to Smart-1 Cloud - [SK180501](https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk180501). | string | A valid token copied from the Connect Gateway screen in Smart-1 Cloud portal. | "" | No |
-| **smart1_cloud_token_e** | Smart-1 Cloud token to connect automatically ***NVA instance e*** to Check Point's Security Management as a Service.<br/><br/>Follow these instructions to quickly connect this member to Smart-1 Cloud - [SK180501](https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk180501). | string | A valid token copied from the Connect Gateway screen in Smart-1 Cloud portal. | "" | No |
