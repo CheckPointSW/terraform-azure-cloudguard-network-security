@@ -118,3 +118,5 @@ You can define if you want to deploy the NVA along side a new Virtual WAN or to 
 | **routing_intent_private_traffic** | Set routing intent policy to allow private traffic through the new nva. | string | yes;<br/>no.<br/>Please verify routing-intent is configured successfully post-deployment. | "yes" | No |
 | **existing_public_ip** | Existing public IP resource to attach to the newly deployed NVA. | string | A resource ID of the public IP resource. Required when new_public_ip is "no"; must be empty when new_public_ip is "yes". | "" | No |
 | **new_public_ip** | Deploy a new public IP resource as part of the managed app and attach to the NVA. | string | yes — create a new public IP (existing_public_ip must be empty);<br/>no — use existing_public_ip (must be provided); | "no" | No |
+| **nics_number** | Number of NICs to attach to the NVA. When set to 3, requires hub address prefix of /23 or larger and scale_unit of at least 10. | number | 2;<br/>3; | 2 | No |
+| **extra_nic_is_public_ip** | Assign a public IP to the additional (3rd) NIC. Only valid when nics_number is 3. | string | yes;<br/>no; | "no" | No |
