@@ -340,3 +340,24 @@ variable "custom_license_type" {
     error_message = "Valid options are 'ngtp', 'ngtx', or 'premium' or empty."
   }
 }
+
+variable "nics_number" {
+  description = "Number of NICs to be created"
+  type        = number
+  default     = 2
+  validation {
+    condition     = contains([2, 3], var.nics_number)
+    error_message = "Number of NICs must be either 2 or 3."
+  }
+}
+
+variable "extra_nic_is_public_ip" {
+  description = "Use public IP for additional NIC (3rd NIC)"
+  type        = string
+  default     = "no"
+  validation {
+    condition     = contains(["yes", "no"], var.extra_nic_is_public_ip)
+    error_message = "extra_nic_is_public_ip must be 'yes' or 'no'."
+  }
+}
+

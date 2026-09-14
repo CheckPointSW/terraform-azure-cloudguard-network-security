@@ -46,6 +46,12 @@ data "http" "image_versions" {
   }
 }
 
+data "azapi_resource" "hub" {
+  type                   = "Microsoft.Network/virtualHubs@2024-05-01"
+  resource_id            = module.vwan.hub_id
+  response_export_values = ["properties.addressPrefix"]
+}
+
 locals {
   image_versions = tolist([for version in jsondecode(data.http.image_versions.response_body).properties.availableVersions : version if substr(version, 0, 4) == substr(lower(length(var.os_version) > 3 ? var.os_version : "${var.os_version}00"), 1, 4)])
 
@@ -68,6 +74,10 @@ locals {
   routing_intent_policies  = var.routing_intent_internet_traffic == "yes" ? (var.routing_intent_private_traffic == "yes" ? tolist([local.routing_intent_internet_policy, local.routing_intent_private_policy]) : tolist([local.routing_intent_internet_policy])) : (var.routing_intent_private_traffic == "yes" ? tolist([local.routing_intent_private_policy]) : [])
   public_ip_resource_group = "/subscriptions/${var.subscription_id}/resourceGroups/${var.new_public_ip == "yes" ? azurerm_resource_group.managed_app_rg.name : var.existing_public_ip != "" ? split("/", var.existing_public_ip)[4] : ""}"
 
+  hub_cidr_prefix = tonumber(split("/", data.azapi_resource.hub.output.properties.addressPrefix)[1])
+
+  # Validation: 3 NICs require /23 or larger
+  hub_size_valid = var.nics_number == 3 ? local.hub_cidr_prefix <= 23 : true
 }
 
 //********************** Marketplace Terms & Solution Registration **************************//
@@ -241,6 +251,12 @@ resource "azapi_resource" "managed_app" {
         },
         upgrading = {
           value = var.upgrade
+        },
+        nicsNumber = {
+          value = var.nics_number
+        },
+        extraNicIsPublicIp = {
+          value = var.extra_nic_is_public_ip
         }
       },
       managedResourceGroupId = "/subscriptions/${var.subscription_id}/resourcegroups/${var.nva_rg_name}"
@@ -248,6 +264,21 @@ resource "azapi_resource" "managed_app" {
   }
 
   tags = merge(lookup(var.tags, "managed-application", {}), lookup(var.tags, "all", {}))
+
+  lifecycle {
+    precondition {
+      condition     = tonumber(var.scale_unit) >= local.extranic_scale_unit_min
+      error_message = "scale_unit must be at least ${local.extranic_scale_unit_min} when nics_number is ${var.nics_number}."
+    }
+    precondition {
+      condition     = local.hub_size_valid
+      error_message = "A 3-NIC deployment requires a hub address prefix of /23 or larger (current: /${local.hub_cidr_prefix})."
+    }
+    precondition {
+      condition     = var.extra_nic_is_public_ip == "yes" ? var.nics_number == 3 : true
+      error_message = "extra_nic_is_public_ip can only be 'yes' when nics_number is 3."
+    }
+  }
 }
 
 //********************** Routing Intent **************************//
