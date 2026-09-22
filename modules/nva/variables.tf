@@ -127,9 +127,10 @@ variable "os_version" {
       "R8110",
       "R8120",
       "R82",
-      "R8210"
+      "R8210",
+      "R8220"
     ], var.os_version)
-    error_message = "Variable [os_version] must be one of the following: 'R8110', 'R8120', 'R82', 'R8210'."
+    error_message = "Variable [os_version] must be one of the following: 'R8110', 'R8120', 'R82', 'R8210', 'R8220'."
   }
 }
 
@@ -320,9 +321,9 @@ variable "plan_product" {
 }
 
 variable "plan_version" {
-  description = "Use the latest version of the managed application (e.g., 1.0.29) for best results. Full version list: https://support.checkpoint.com/results/sk/sk132192."
+  description = "Use the latest version of the managed application (e.g., 1.0.30) for best results. Full version list: https://support.checkpoint.com/results/sk/sk132192."
   type        = string
-  default     = "1.0.29"
+  default     = "1.0.30"
 }
 
 variable "custom_license_type" {
