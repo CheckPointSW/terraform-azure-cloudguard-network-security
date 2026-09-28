@@ -152,6 +152,7 @@ module "custom_image" {
   hyper_v_generation   = var.hyper_v_generation
   resource_group_name  = module.common.resource_group_name
   location             = module.common.resource_group_location
+  storage_type         = module.common.os_disk_type
   tags                 = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
@@ -232,7 +233,7 @@ resource "azurerm_virtual_machine" "mgmt_vm_instance" {
     name              = var.mgmt_name
     create_option     = module.common.storage_os_disk_create_option
     caching           = module.common.storage_os_disk_caching
-    managed_disk_type = module.vm_boot_diagnostics_storage.storage_account_type
+    managed_disk_type = module.common.os_disk_type
     disk_size_gb      = module.common.disk_size
   }
 

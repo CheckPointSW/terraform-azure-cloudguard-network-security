@@ -16,6 +16,7 @@ module "common" {
   allow_upload_download          = var.allow_upload_download
   vm_size                        = var.vm_size
   disk_size                      = var.disk_size
+  os_disk_type                   = var.os_disk_type
   is_blink                       = var.is_blink
   os_version                     = var.os_version
   vm_os_sku                      = "${var.vm_os_sku}${var.hyper_v_generation == "V2" ? "-gen2" : ""}"
@@ -353,6 +354,7 @@ module "custom_image" {
   hyper_v_generation   = var.hyper_v_generation
   resource_group_name  = module.common.resource_group_name
   location             = module.common.resource_group_location
+  storage_type         = module.common.os_disk_type
   tags                 = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
@@ -403,7 +405,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   os_disk {
     disk_size_gb         = module.common.disk_size
     caching              = module.common.storage_os_disk_caching
-    storage_account_type = module.vm_boot_diagnostics_storage.storage_account_type
+    storage_account_type = module.common.os_disk_type
   }
 
   dynamic "plan" {

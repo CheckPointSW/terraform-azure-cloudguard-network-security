@@ -87,6 +87,7 @@ module "example_module" {
   storage_account_deployment_mode = "New"
   add_storage_account_ip_rules    = false
   storage_account_additional_ips  = []
+  os_disk_type                    = "StandardSSD_LRS"
 
   # Load Balancers Variables
   deployment_mode              = "Standard"
@@ -168,6 +169,7 @@ module "example_module" {
   storage_account_deployment_mode = "New"
   add_storage_account_ip_rules    = false
   storage_account_additional_ips  = []
+  os_disk_type                    = "StandardSSD_LRS"
 
   # Load Balancers Variables
   deployment_mode              = "Standard"
@@ -456,6 +458,7 @@ platform_fault_domain_count = 1
 | **nsg_id** | The ID of an existing Network Security Group to use. If left empty (`""`), a new NSG will be created. Only relevant when `enable_nsg = true`. | string | Existing NSG resource ID | "" | No |
 | **instance_level_public_ipv4** | Assign a public IPv4 address to each VMSS instance on eth0. Set to false when instances should only be reachable through a load balancer or private connectivity. | boolean | true;<br />false; | true | No |
 | **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None; | "New" | No |
+| **os_disk_type** | Type of the VM OS managed disk. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD. Defaults to Standard SSD (StandardSSD_LRS). | string | "Premium_LRS";<br/>"StandardSSD_LRS"; | "StandardSSD_LRS" | No |
 | **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location.<br/> Relevant only if `storage_account_deployment_mode = "New"` | boolean | true;<br />false; | false | No |
 | **storage_account_additional_ips** | IPs/CIDRs that are allowed access to the Storage Account.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | list(string) | A list of valid IPs and CIDRs | [] | No |
 | **existing_storage_account_name** | The existing storage account name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |

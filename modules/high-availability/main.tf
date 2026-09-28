@@ -14,6 +14,7 @@ module "common" {
   allow_upload_download          = var.allow_upload_download
   vm_size                        = var.vm_size
   disk_size                      = var.disk_size
+  os_disk_type                   = var.os_disk_type
   is_blink                       = var.is_blink
   os_version                     = var.os_version
   vm_os_sku                      = "${var.vm_os_sku}${var.hyper_v_generation == "V2" ? "-gen2" : ""}"
@@ -348,7 +349,6 @@ module "vm_boot_diagnostics_storage" {
   location                                     = module.common.resource_group_location
   add_storage_account_ip_rules                 = var.add_storage_account_ip_rules
   storage_account_additional_ips               = var.storage_account_additional_ips
-  storage_account_type                         = var.storage_account_type
   tags                                         = merge(lookup(var.tags, "storage-account", {}), lookup(var.tags, "all", {}))
 }
 
@@ -359,7 +359,7 @@ module "custom_image" {
   hyper_v_generation   = var.hyper_v_generation
   resource_group_name  = module.common.resource_group_name
   location             = module.common.resource_group_location
-  storage_type         = var.storage_account_type
+  storage_type         = module.common.os_disk_type
   tags                 = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
@@ -401,7 +401,7 @@ resource "azurerm_virtual_machine" "vm_instance_availability_set" {
     name              = "${var.cluster_name}-${count.index + 1}"
     create_option     = module.common.storage_os_disk_create_option
     caching           = module.common.storage_os_disk_caching
-    managed_disk_type = module.vm_boot_diagnostics_storage.storage_account_type
+    managed_disk_type = module.common.os_disk_type
     disk_size_gb      = module.common.disk_size
   }
 
@@ -497,7 +497,7 @@ resource "azurerm_virtual_machine" "vm_instance_availability_zone" {
     name              = "${var.cluster_name}-${count.index + 1}"
     create_option     = module.common.storage_os_disk_create_option
     caching           = module.common.storage_os_disk_caching
-    managed_disk_type = module.vm_boot_diagnostics_storage.storage_account_type
+    managed_disk_type = module.common.os_disk_type
     disk_size_gb      = module.common.disk_size
   }
 
@@ -622,7 +622,7 @@ resource "azurerm_linux_virtual_machine" "vm_instance_availability_zone_extended
   os_disk {
     name                 = "${var.cluster_name}-${count.index + 1}"
     caching              = module.common.storage_os_disk_caching
-    storage_account_type = module.vm_boot_diagnostics_storage.storage_account_type
+    storage_account_type = module.common.os_disk_type
     disk_size_gb         = module.common.disk_size
   }
 

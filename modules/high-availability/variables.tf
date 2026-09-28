@@ -308,19 +308,19 @@ variable "storage_account_deployment_mode" {
   default     = "New"
 }
 
-variable "storage_account_type" {
-  description = "Storage account type for managed disks. Valid options are Standard_LRS and Premium_LRS."
+variable "os_disk_type" {
+  description = "Type of the VM OS managed disk. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD."
   type        = string
-  default     = "Standard_LRS"
+  default     = null
 
   validation {
-    condition     = contains(["Standard_LRS", "Premium_LRS"], var.storage_account_type)
-    error_message = "Variable [storage_account_type] must be one of 'Standard_LRS', 'Premium_LRS'."
+    condition     = var.os_disk_type == null || contains(["Premium_LRS", "StandardSSD_LRS", "Standard_LRS"], var.os_disk_type)
+    error_message = "Variable [os_disk_type] must be one of 'Premium_LRS', 'StandardSSD_LRS'."
   }
 
   validation {
-    condition     = var.extended_zone == "None" || var.storage_account_type == "Premium_LRS"
-    error_message = "Extended zone deployments require storage_account_type to be 'Premium_LRS'."
+    condition     = var.os_disk_type == null || var.extended_zone == "None" || contains(["Premium_LRS", "StandardSSD_LRS"], var.os_disk_type)
+    error_message = "Extended zone deployments require an SSD OS disk type: 'Premium_LRS' or 'StandardSSD_LRS'."
   }
 }
 

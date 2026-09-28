@@ -83,6 +83,10 @@ output "disk_size" {
   value = var.disk_size
 }
 
+output "os_disk_type" {
+  value = local.os_disk_type
+}
+
 output "publisher" {
   value = var.publisher
 }
@@ -93,10 +97,6 @@ output "storage_os_disk_create_option" {
 
 output "storage_os_disk_caching" {
   value = var.storage_os_disk_caching
-}
-
-output "managed_disk_type" {
-  value = var.managed_disk_type
 }
 
 output "authentication_type" {
