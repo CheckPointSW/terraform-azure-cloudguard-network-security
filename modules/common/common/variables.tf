@@ -195,7 +195,11 @@ variable "vm_size" {
       "Standard_F8", "Standard_F16", "Standard_D2_v5", "Standard_D4_v5", "Standard_D8_v5", "Standard_D16_v5",
       "Standard_D32_v5", "Standard_D2s_v5", "Standard_D4s_v5", "Standard_D8s_v5", "Standard_D16s_v5",
       "Standard_D2d_v5", "Standard_D4d_v5", "Standard_D8d_v5", "Standard_D16d_v5", "Standard_D32d_v5",
-      "Standard_D2ds_v5", "Standard_D4ds_v5", "Standard_D8ds_v5", "Standard_D16ds_v5", "Standard_D32ds_v5"
+      "Standard_D2ds_v5", "Standard_D4ds_v5", "Standard_D8ds_v5", "Standard_D16ds_v5", "Standard_D32ds_v5",
+      "Standard_E2bs_v5", "Standard_E4bs_v5", "Standard_E8bs_v5", "Standard_E16bs_v5",
+      "Standard_E32bs_v5", "Standard_E48bs_v5", "Standard_E64bs_v5", "Standard_E96bs_v5",
+      "Standard_E2bds_v5", "Standard_E4bds_v5", "Standard_E8bds_v5", "Standard_E16bds_v5", "Standard_E32bds_v5",
+      "Standard_E48bds_v5", "Standard_E64bds_v5", "Standard_E96bds_v5"
     ], var.vm_size)
     error_message = <<-EOF
       Variable [vm_size] must be one of the allowed VM sizes: 'Standard_F2s', 'Standard_F4s', 'Standard_F8s',
@@ -206,7 +210,11 @@ variable "vm_size" {
       'Standard_D8_v5', 'Standard_D16_v5', 'Standard_D32_v5', 'Standard_D2s_v5', 'Standard_D4s_v5',
       'Standard_D8s_v5', 'Standard_D16s_v5', 'Standard_D2d_v5', 'Standard_D4d_v5', 'Standard_D8d_v5',
       'Standard_D16d_v5', 'Standard_D32d_v5', 'Standard_D2ds_v5', 'Standard_D4ds_v5', 'Standard_D8ds_v5',
-      'Standard_D16ds_v5', 'Standard_D32ds_v5'.
+      'Standard_D16ds_v5', 'Standard_D32ds_v5', 'Standard_E2bs_v5', 'Standard_E4bs_v5',
+      'Standard_E8bs_v5', 'Standard_E16bs_v5', 'Standard_E32bs_v5', 'Standard_E48bs_v5', 'Standard_E64bs_v5',
+      'Standard_E96bs_v5', 'Standard_E2bds_v5', 'Standard_E4bds_v5', 'Standard_E8bds_v5',
+      'Standard_E16bds_v5', 'Standard_E32bds_v5', 'Standard_E48bds_v5', 'Standard_E64bds_v5',
+      'Standard_E96bds_v5'.
     EOF
   }
 }
