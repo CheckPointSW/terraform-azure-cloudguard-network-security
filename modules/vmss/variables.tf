@@ -569,3 +569,34 @@ variable "set_static_health_probe" {
   type    = bool
   default = false
 }
+
+//********************** Orchestration (VMSS Flex) variables *******************//
+variable "orchestration_mode" {
+  description = "VMSS orchestration mode. 'Uniform' (default) deploys the classic scale set (azurerm_linux_virtual_machine_scale_set), where all members share one identical VM model. 'Flexible' deploys members as standard Azure VMs (azurerm_orchestrated_virtual_machine_scale_set), enabling per-instance effective routes and VTap packet mirroring. The orchestration mode is immutable and cannot be changed after deployment."
+  type        = string
+  default     = "Uniform"
+
+  validation {
+    condition = contains([
+      "Uniform",
+      "Flexible"
+    ], var.orchestration_mode)
+    error_message = "Variable [orchestration_mode] must be one of the following: 'Uniform', 'Flexible'."
+  }
+}
+
+variable "platform_fault_domain_count" {
+  description = "Number of fault domains the Flexible scale set spreads instances across. Flexible only; ignored in Uniform. Zonal deployments support 1 only; regional (no zones) supports 1, 2 or 3."
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.platform_fault_domain_count >= 1 && var.platform_fault_domain_count <= 3
+    error_message = "Variable [platform_fault_domain_count] must be in the range 1 - 3."
+  }
+
+  validation {
+    condition     = !(var.orchestration_mode == "Flexible" && var.availability_zones_num != "0") || var.platform_fault_domain_count == 1
+    error_message = "Variable [platform_fault_domain_count] must be 1 when deploying Flexible orchestration across availability zones (availability_zones_num != \"0\")."
+  }
+}

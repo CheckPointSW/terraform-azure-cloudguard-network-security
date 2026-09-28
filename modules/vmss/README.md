@@ -395,6 +395,19 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 **Note:** When deploying a Virtual Machine Scale Set (VMSS) using Terraform, Azure does not currently support deployment without boot diagnostics. Therefore, setting storage_account_deployment_mode = "None" behaves the same as "Managed" — a managed storage account will still be created automatically.
 For more information, refer to the [Azure Terraform documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine_scale_set#boot_diagnostics-1).
 
+### Orchestration Mode (Uniform / Flexible):
+The module deploys the scale set in one of two Azure orchestration modes, selected by `orchestration_mode`:
+- `Uniform` (default): the classic scale set (`azurerm_linux_virtual_machine_scale_set`), where all members share one identical VM model.
+- `Flexible`: Azure Flexible orchestration — scale set members are deployed and managed as standard Azure VMs (`azurerm_orchestrated_virtual_machine_scale_set`), each individually addressable via the standard Azure VM APIs and spread across fault domains (and availability zones). Cloud Firewall uses this mode for per-instance effective-route visibility and VTap packet mirroring on the gateway NICs, which Uniform cannot expose.
+
+Flexible example — the Flex-specific inputs to add to your existing VMSS module block:
+```
+orchestration_mode          = "Flexible"
+platform_fault_domain_count = 1
+```
+
+**Notes:** Flexible mode has no custom-metrics support (`enable_custom_metrics` is ignored - SystemAssigned identity is unavailable), and the orchestration mode is immutable once deployed. For general Flexible orchestration behavior (outbound connectivity, fault domains, image immutability) see the [Azure orchestration modes docs](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-orchestration-modes).
+
 ## Module's variables:
 | Name | Description | Type | Allowed values | Default | Required |
 | ---- | ----------- | ---- | -------------- | ------- | -------- |
@@ -476,3 +489,5 @@ For more information, refer to the [Azure Terraform documentation](https://regis
 | **subnet_ipv6_prefixes** | IPv6 address prefixes to be used for network subnets. Must be exactly /64 prefixes. | list(string) | List of two /64 IPv6 CIDR blocks (e.g., ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"]).<br />**Important:** Index [0] is used for the **frontend subnet**, index [1] is used for the **backend subnet**. | ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"] | No |
 | **backend_lb_ipv6_address** | Static IPv6 address for the internal load balancer frontend. Leave empty for dynamic allocation. | string | Valid IPv6 address within the backend subnet prefix or empty string for dynamic allocation. | "ace:cab:deca:deee::a" | No |
 | **ipv6_allocated_outbound_ports** | Number of allocated outbound ports for IPv6 SNAT on the external load balancer. | number | Valid range: 0-64000. | 1024 | No |
+| **orchestration_mode** | VMSS orchestration mode. "Uniform" (default) deploys the classic scale set (`azurerm_linux_virtual_machine_scale_set`), where all members share one identical VM model. "Flexible" deploys members as standard Azure VMs (`azurerm_orchestrated_virtual_machine_scale_set`), enabling per-instance effective routes and VTap packet mirroring. The orchestration mode is immutable and cannot be changed after deployment. | string | "Uniform";<br />"Flexible"; | "Uniform" | No |
+| **platform_fault_domain_count** | **Flexible mode only** (ignored in Uniform). Number of fault domains the Flexible scale set spreads instances across. Zonal deployments support 1 only; regional (no zones) supports 1, 2 or 3. | number | 1;<br />2;<br />3; | 1 | No |
