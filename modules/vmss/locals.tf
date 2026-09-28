@@ -1,7 +1,7 @@
 locals {
   module_name    = "vmss_terraform_registry"
   module_version = "1.0.9"
-  template_name  = var.enable_ipv6 ? "vmss_terraform_registry_dual_stack" : "vmss_terraform_registry"
+  template_name  = "vmss_terraform_registry${var.enable_ipv6 ? "_dual_stack" : ""}${local.is_flexible ? "_flex" : ""}"
 
   create_frontend_lb = contains(["Standard", "External"], var.deployment_mode)
   create_backend_lb  = contains(["Standard", "Internal"], var.deployment_mode)
@@ -25,7 +25,43 @@ locals {
   management_interface_name  = split("-", var.management_interface)[0]
   management_ip_address_type = split("-", var.management_interface)[1]
 
-  vmss_tags = var.management_interface == "eth0" ? {
+  is_flexible = var.orchestration_mode == "Flexible"
+
+  vmss_id = local.is_flexible ? (
+    azurerm_orchestrated_virtual_machine_scale_set.vmss_flex[0].id
+  ) : azurerm_linux_virtual_machine_scale_set.vmss[0].id
+
+  vmss_name = local.is_flexible ? (
+    azurerm_orchestrated_virtual_machine_scale_set.vmss_flex[0].name
+  ) : azurerm_linux_virtual_machine_scale_set.vmss[0].name
+
+  vmss_principal_id = local.is_flexible ? "" : lookup(azurerm_linux_virtual_machine_scale_set.vmss[0].identity[0], "principal_id")
+
+  vmss_zones = var.availability_zones_num == "0" ? null : (
+    length(var.availability_zones) == 0 ? [for i in range(1, tonumber(var.availability_zones_num) + 1) : tostring(i)] : var.availability_zones
+  )
+
+  // Custom metrics is forced off on Flexible (SystemAssigned identity unsupported there).
+  vmss_custom_data = base64encode(templatefile("${path.module}/cloud-init.sh", {
+    installation_type              = module.common.installation_type
+    allow_upload_download          = module.common.allow_upload_download
+    os_version                     = module.common.os_version
+    template_name                  = local.template_name
+    module_version                 = module.common.module_version
+    template_type                  = "terraform"
+    is_blink                       = module.common.is_blink
+    bootstrap_script64             = base64encode(var.bootstrap_script)
+    location                       = module.common.resource_group_location
+    sic_key                        = var.sic_key
+    vnet                           = module.vnet.subnet_prefixes[0]
+    enable_custom_metrics          = (var.enable_custom_metrics && !local.is_flexible) ? "yes" : "no"
+    admin_shell                    = var.admin_shell
+    serial_console_password_hash   = var.serial_console_password_hash
+    maintenance_mode_password_hash = var.maintenance_mode_password_hash
+    set_health_probe               = var.set_static_health_probe
+  }))
+
+  vmss_base_tags = var.management_interface == "eth0" ? {
     x-chkp-management           = var.management_name,
     x-chkp-template             = var.configuration_template_name,
     x-chkp-ip-address           = local.management_ip_address_type,
@@ -45,4 +81,10 @@ locals {
     x-chkp-srcImageUri          = var.source_image_vhd_uri,
     x-chkp-ip-version           = var.enable_ipv6 ? "dual-stack" : "ipv4-only"
   }
+
+  // x-chkp-orchestration-mode is CME's Flexible-detection signal; CME falls
+  // back to Uniform for any value other than "Flexible" (including absent).
+  vmss_tags = merge(local.vmss_base_tags, {
+    x-chkp-orchestration-mode = local.is_flexible ? "Flexible" : "Uniform"
+  })
 }

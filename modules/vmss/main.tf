@@ -356,7 +356,14 @@ module "custom_image" {
   tags                 = merge(lookup(var.tags, "custom-image", {}), lookup(var.tags, "all", {}))
 }
 
+// Keep existing Uniform state when the count index is introduced.
+moved {
+  from = azurerm_linux_virtual_machine_scale_set.vmss
+  to   = azurerm_linux_virtual_machine_scale_set.vmss[0]
+}
+
 resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
+  count = local.is_flexible ? 0 : 1
   depends_on = [
     azurerm_lb_backend_address_pool.frontend_lb_pool_v6,
     azurerm_lb_backend_address_pool.backend_lb_pool_v6
@@ -367,9 +374,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   sku                 = module.common.vm_size
   instances           = local.number_of_vm_instances
   overprovision       = false
-  zones = var.availability_zones_num == "0" ? null : (
-    length(var.availability_zones) == 0 ? [for i in range(1, tonumber(var.availability_zones_num) + 1) : tostring(i)] : var.availability_zones
-  )
+  zones               = local.vmss_zones
 
   dynamic "identity" {
     for_each = (var.enable_custom_metrics || length(var.user_assigned_identity_ids) > 0) ? [1] : []
@@ -413,24 +418,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   computer_name_prefix = lower(var.vmss_name)
   admin_username       = module.common.admin_username
   admin_password       = module.common.admin_password
-  custom_data = base64encode(templatefile("${path.module}/cloud-init.sh", {
-    installation_type              = module.common.installation_type
-    allow_upload_download          = module.common.allow_upload_download
-    os_version                     = module.common.os_version
-    template_name                  = local.template_name
-    module_version                 = module.common.module_version
-    template_type                  = "terraform"
-    is_blink                       = module.common.is_blink
-    bootstrap_script64             = base64encode(var.bootstrap_script)
-    location                       = module.common.resource_group_location
-    sic_key                        = var.sic_key
-    vnet                           = module.vnet.subnet_prefixes[0]
-    enable_custom_metrics          = var.enable_custom_metrics ? "yes" : "no"
-    admin_shell                    = var.admin_shell
-    serial_console_password_hash   = var.serial_console_password_hash
-    maintenance_mode_password_hash = var.maintenance_mode_password_hash
-    set_health_probe               = var.set_static_health_probe
-  }))
+  custom_data          = local.vmss_custom_data
 
   disable_password_authentication = module.common.SSH_authentication_type_condition
 
@@ -466,7 +454,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
         content {
           name                    = "${var.vmss_name}-public-ip"
           idle_timeout_in_minutes = 15
-          domain_name_label       = "${lower(var.vmss_name)}-dns-name"
         }
       }
     }
@@ -515,11 +502,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
 }
 
 resource "azurerm_monitor_autoscale_setting" "vmss_settings" {
-  depends_on          = [azurerm_linux_virtual_machine_scale_set.vmss]
+  depends_on          = [azurerm_linux_virtual_machine_scale_set.vmss, azurerm_orchestrated_virtual_machine_scale_set.vmss_flex]
   name                = var.vmss_name
   resource_group_name = module.common.resource_group_name
   location            = module.common.resource_group_location
-  target_resource_id  = azurerm_linux_virtual_machine_scale_set.vmss.id
+  target_resource_id  = local.vmss_id
 
   profile {
     name = "Profile1"
@@ -533,7 +520,7 @@ resource "azurerm_monitor_autoscale_setting" "vmss_settings" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_linux_virtual_machine_scale_set.vmss.id
+        metric_resource_id = local.vmss_id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -553,7 +540,7 @@ resource "azurerm_monitor_autoscale_setting" "vmss_settings" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = azurerm_linux_virtual_machine_scale_set.vmss.id
+        metric_resource_id = local.vmss_id
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -584,9 +571,9 @@ resource "azurerm_monitor_autoscale_setting" "vmss_settings" {
 
 resource "azurerm_role_assignment" "custom_metrics_role_assignment" {
   depends_on         = [azurerm_linux_virtual_machine_scale_set.vmss]
-  count              = var.enable_custom_metrics ? 1 : 0
+  count              = var.enable_custom_metrics && !local.is_flexible ? 1 : 0
   role_definition_id = join("", ["/subscriptions/", var.subscription_id, "/providers/Microsoft.Authorization/roleDefinitions/", "3913510d-42f4-4e42-8a64-420c390055eb"])
-  principal_id       = lookup(azurerm_linux_virtual_machine_scale_set.vmss.identity[0], "principal_id")
+  principal_id       = local.vmss_principal_id
   scope              = module.common.resource_group_id
 
   lifecycle {

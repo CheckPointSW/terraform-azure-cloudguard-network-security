@@ -1,16 +1,16 @@
 output "vmss_id" {
   description = "The ID of the Virtual Machine Scale Set."
-  value       = azurerm_linux_virtual_machine_scale_set.vmss.id
+  value       = local.vmss_id
 }
 
 output "vmss_name" {
   description = "The name of the Virtual Machine Scale Set."
-  value       = azurerm_linux_virtual_machine_scale_set.vmss.name
+  value       = local.vmss_name
 }
 
 output "vmss_identity_principal_id" {
-  description = "The Principal ID of the VMSS system-assigned managed identity. Empty when custom metrics are disabled."
-  value       = var.enable_custom_metrics ? azurerm_linux_virtual_machine_scale_set.vmss.identity[0].principal_id : ""
+  description = "The Principal ID of the VMSS system-assigned managed identity. Empty when custom metrics are disabled or in Flexible mode (SystemAssigned identity is unsupported on Flexible)."
+  value       = var.enable_custom_metrics && !local.is_flexible ? azurerm_linux_virtual_machine_scale_set.vmss[0].identity[0].principal_id : ""
 }
 
 output "resource_group_name" {
