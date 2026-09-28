@@ -72,20 +72,6 @@ variable "storage_account_additional_ips" {
   }
 }
 
-variable "storage_account_type" {
-  description = "Defines the type of storage account to be created."
-  type        = string
-  default     = "Standard_LRS"
-
-  validation {
-    condition = contains([
-      "Standard_LRS",
-      "Premium_LRS"
-    ], var.storage_account_type)
-    error_message = "Variable [storage_account_type] must be one of 'Standard_LRS', 'Premium_LRS'."
-  }
-}
-
 variable "storage_account_tier" {
   description = "Defines the Tier to use for this storage account."
   type        = string

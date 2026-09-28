@@ -23,12 +23,12 @@ variable "source_image_vhd_uri" {
 }
 
 variable "storage_type" {
-  description = "Storage type for the custom image OS disk. Should match the storage_account_type used for VM managed disks. Possible values: Standard_LRS, Premium_LRS."
+  description = "Storage type for the custom image OS disk. Should match the os_disk_type used for VM managed disks. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD."
   type        = string
-  default     = "Standard_LRS"
+  default     = "StandardSSD_LRS"
   validation {
-    condition     = contains(["Standard_LRS", "Premium_LRS"], var.storage_type)
-    error_message = "Variable [storage_type] must be one of 'Standard_LRS', 'Premium_LRS'."
+    condition     = contains(["Premium_LRS", "StandardSSD_LRS", "Standard_LRS"], var.storage_type)
+    error_message = "Variable [storage_type] must be one of 'Premium_LRS', 'StandardSSD_LRS'."
   }
 }
 

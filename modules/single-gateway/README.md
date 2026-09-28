@@ -81,7 +81,7 @@ module "example_module" {
   subnet_prefixes                 = ["10.0.1.0/24", "10.0.2.0/24"]
   nsg_id                          = ""
   storage_account_deployment_mode = "New"
-  storage_account_type            = "Standard_LRS"
+  os_disk_type                    = "StandardSSD_LRS"
   add_storage_account_ip_rules    = false
   storage_account_additional_ips  = []
 }
@@ -151,7 +151,7 @@ module "example_module" {
 
   nsg_id                          = ""
   storage_account_deployment_mode = "New"
-  storage_account_type            = "Standard_LRS"
+  os_disk_type                    = "StandardSSD_LRS"
   add_storage_account_ip_rules    = false
   storage_account_additional_ips  = []
 }
@@ -169,7 +169,7 @@ This module supports Azure Extended Zones through the `extended_zone` variable.
 - When `extended_zone` is not `None`:
   - `zone` must be empty (`""`)
   - `enable_ipv6` must be `false` (IPv6 is not supported)
-  - `storage_account_type` must be `"Premium_LRS"`
+  - `os_disk_type` must be an SSD type (`"Premium_LRS"` or `"StandardSSD_LRS"`)
   - Boot diagnostics storage account deployment mode is forced to `None` internally
 
 Extended zone example:
@@ -177,7 +177,7 @@ Extended zone example:
 location             = "westus"
 extended_zone        = "losangeles"
 zone                 = ""
-storage_account_type = "Premium_LRS"
+os_disk_type         = "StandardSSD_LRS"
 ```
 
 ## IPv6 Dual-Stack Support
@@ -351,7 +351,7 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **subnet_ipv6_prefixes** | IPv6 address prefixes to be used for network subnets. Required when enable_ipv6 is true. Must contain one /64 prefix for each subnet. | list(string) | List of valid IPv6 CIDR blocks (must be /64 prefixes within the VNet IPv6 address space)<br />**Important:** Index [0] is used for the **frontend subnet**, index [1] is used for the **backend subnet**. | ["ace:cab:deca:deed::/64", "ace:cab:deca:deee::/64"] | No |
 | **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a default NSG will be created. | string | Existing NSG resource ID | "" | No |
 | **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None; | "New" | No |
-| **storage_account_type** | Storage account type for managed disks. Valid options are Standard_LRS and Premium_LRS. | string | "Standard_LRS";<br/>"Premium_LRS"; | "Standard_LRS" | No |
+| **os_disk_type** | Type of the VM OS managed disk. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD. Defaults to Standard SSD (StandardSSD_LRS). | string | "Premium_LRS";<br/>"StandardSSD_LRS"; | "StandardSSD_LRS" | No |
 | **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | boolean | true;<br />false; | false | No |
 | **storage_account_additional_ips** | IPs/CIDRs that are allowed access to the Storage Account.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | list(string) | A list of valid IPs and CIDRs | [] | No |
 | **existing_storage_account_name** | The existing storage account name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |

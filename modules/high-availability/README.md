@@ -74,7 +74,7 @@ module "example_module" {
   subnet_prefixes                 = ["10.0.1.0/24", "10.0.2.0/24"]
   nsg_id                          = ""
   storage_account_deployment_mode = "New"
-  storage_account_type            = "Standard_LRS"
+  os_disk_type                    = "StandardSSD_LRS"
   add_storage_account_ip_rules    = false
   storage_account_additional_ips  = []
   vips_names                      = []
@@ -97,7 +97,7 @@ This module supports Azure Extended Zones through the `extended_zone` variable.
 - When `extended_zone` is not `None`:
   - `availability_type` must be `"Availability Zone"`
   - `availability_zones` must be an empty list (`[]`)
-  - `storage_account_type` must be `"Premium_LRS"`
+  - `os_disk_type` must be an SSD type (`"Premium_LRS"` or `"StandardSSD_LRS"`)
   - `use_public_ip_prefix` must be `false` (public IP prefix is not supported)
   - Boot diagnostics storage account deployment mode is forced to `None` internally
 
@@ -107,7 +107,7 @@ location             = "westus"
 extended_zone        = "losangeles"
 availability_type    = "Availability Zone"
 availability_zones   = []
-storage_account_type = "Premium_LRS"
+os_disk_type         = "StandardSSD_LRS"
 ```
 
 ## Conditional creation
@@ -217,7 +217,7 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **subnet_prefixes** | The address prefixes to be used for created subnets. | list(string) | The subnets need to contain within the address space for this virtual network (defined by the `address_space` variable). | ["10.0.0.0/24", "10.0.1.0/24"] | No |
 | **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a default NSG will be created. | string | Existing NSG resource ID | "" | No |
 | **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None; | "New" | No |
-| **storage_account_type** | Storage account type for managed disks. Valid options are Standard_LRS and Premium_LRS. | string | "Standard_LRS";<br/>"Premium_LRS"; | "Standard_LRS" | No |
+| **os_disk_type** | Type of the VM OS managed disk. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD. Defaults to Standard SSD (StandardSSD_LRS). | string | "Premium_LRS";<br/>"StandardSSD_LRS"; | "StandardSSD_LRS" | No |
 | **add_storage_account_ip_rules** | Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | boolean | true;<br />false; | false | No |
 | **storage_account_additional_ips** | IPs/CIDRs that are allowed access to the Storage Account.<br/> Relevant only if `storage_account_deployment_mode = "New"`. | list(string) | A list of valid IPs and CIDRs | [] | No |
 | **existing_storage_account_name** | The existing storage account name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |

@@ -295,6 +295,17 @@ variable "disk_size" {
   }
 }
 
+variable "os_disk_type" {
+  description = "Type of the VM OS managed disk. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD. When null, defaults to Standard SSD (StandardSSD_LRS)."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.os_disk_type == null || contains(["Premium_LRS", "StandardSSD_LRS", "Standard_LRS"], var.os_disk_type)
+    error_message = "Variable [os_disk_type] must be one of 'Premium_LRS', 'StandardSSD_LRS'."
+  }
+}
+
 //************** Storage OS disk variables **************//
 variable "storage_os_disk_create_option" {
   description = "The method to use when creating the managed disk"
@@ -305,20 +316,6 @@ variable "storage_os_disk_create_option" {
 variable "storage_os_disk_caching" {
   description = "Specifies the caching requirements for the OS Disk"
   default     = "ReadWrite"
-}
-
-variable "managed_disk_type" {
-  description = "Specifies the type of managed disk to create. Possible values are either Standard_LRS, StandardSSD_LRS, Premium_LRS"
-  type        = string
-  default     = "Standard_LRS"
-
-  validation {
-    condition = contains([
-      "Standard_LRS",
-      "Premium_LRS"
-    ], var.managed_disk_type)
-    error_message = "Variable [managed_disk_type] must be one of the following: 'Standard_LRS', 'Premium_LRS'."
-  }
 }
 
 variable "authentication_type" {

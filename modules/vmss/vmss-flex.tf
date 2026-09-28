@@ -37,7 +37,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss_flex" {
 
   os_disk {
     caching              = module.common.storage_os_disk_caching
-    storage_account_type = module.vm_boot_diagnostics_storage.storage_account_type
+    storage_account_type = module.common.os_disk_type
     disk_size_gb         = module.common.disk_size
   }
 

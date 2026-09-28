@@ -13,10 +13,6 @@ output "storage_account_primary_blob_endpoint" {
   )
 }
 
-output "storage_account_type" {
-  value = var.storage_account_type
-}
-
 output "storage_account_deployment_mode" {
   value = var.storage_account_deployment_mode
 }

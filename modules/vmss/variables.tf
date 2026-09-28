@@ -341,6 +341,17 @@ variable "storage_account_deployment_mode" {
   default     = "New"
 }
 
+variable "os_disk_type" {
+  description = "Type of the VM OS managed disk. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.os_disk_type == null || contains(["Premium_LRS", "StandardSSD_LRS", "Standard_LRS"], var.os_disk_type)
+    error_message = "Variable [os_disk_type] must be one of 'Premium_LRS', 'StandardSSD_LRS'."
+  }
+}
+
 variable "add_storage_account_ip_rules" {
   description = "Add Storage Account IP rules that allow access to the Serial Console only for IPs based on their geographic location."
   type        = bool
