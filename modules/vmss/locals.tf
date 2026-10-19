@@ -61,7 +61,10 @@ locals {
     set_health_probe               = var.set_static_health_probe
   }))
 
-  vmss_base_tags = var.management_interface == "eth0" ? {
+  # management_interface is eth0-public / eth0-private / eth1-private, never bare "eth0".
+  # The VMSS UI collects a management IP only for eth0-private, and the ARM template
+  # omits the address tag when that IP is empty.
+  vmss_base_tags = local.management_interface_name == "eth0" && local.management_ip_address_type == "private" && var.management_IP != "" ? {
     x-chkp-management           = var.management_name,
     x-chkp-template             = var.configuration_template_name,
     x-chkp-ip-address           = local.management_ip_address_type,
