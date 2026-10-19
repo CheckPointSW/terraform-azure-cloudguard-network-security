@@ -494,3 +494,56 @@ platform_fault_domain_count = 1
 | **ipv6_allocated_outbound_ports** | Number of allocated outbound ports for IPv6 SNAT on the external load balancer. | number | Valid range: 0-64000. | 1024 | No |
 | **orchestration_mode** | VMSS orchestration mode. "Uniform" (default) deploys the classic scale set (`azurerm_linux_virtual_machine_scale_set`), where all members share one identical VM model. "Flexible" deploys members as standard Azure VMs (`azurerm_orchestrated_virtual_machine_scale_set`), enabling per-instance effective routes and VTap packet mirroring. The orchestration mode is immutable and cannot be changed after deployment. | string | "Uniform";<br />"Flexible"; | "Uniform" | No |
 | **platform_fault_domain_count** | **Flexible mode only** (ignored in Uniform). Number of fault domains the Flexible scale set spreads instances across. Zonal deployments support 1 only; regional (no zones) supports 1, 2 or 3. | number | 1;<br />2;<br />3; | 1 | No |
+
+## Outputs
+
+This module provides outputs for the scale set, load balancers, and networking resources.
+
+### Adding Outputs to Your Configuration
+
+Module outputs are available as `module.<MODULE_NAME>.<OUTPUT_NAME>`. To expose them from your root configuration (so `terraform output` shows them), add output blocks **after** the module call.
+
+To see detailed output, define individual outputs for the specific values you need. Reference the [Available Outputs](#available-outputs) table below to see all available outputs.
+
+**Example:**
+
+```hcl
+output "vmss_id" {
+  value       = module.example_module.vmss_id
+  description = "The ID of the Virtual Machine Scale Set."
+}
+
+output "frontend_lb_public_ip" {
+  value       = module.example_module.frontend_lb_public_ip
+  description = "The public IP address of the frontend load balancer. Null when deployment_mode is 'Internal' or 'None'."
+}
+```
+> **Note:** This module does not mark any outputs as `sensitive`. Before exposing an output in CI logs or shared tooling, review it and add `sensitive = true` to your root output if needed.
+
+### Viewing Outputs
+
+After `terraform apply`, outputs are displayed automatically. View them anytime using:
+
+```bash
+terraform output                    # View all outputs
+terraform output vmss_id  # View specific output
+terraform output -json              # View in JSON format
+```
+
+### Available Outputs
+
+| Category | Output Name | Description |
+|----------|-------------|-------------|
+| **Compute** | `vmss_id` | The ID of the Virtual Machine Scale Set. |
+|  | `vmss_name` | The name of the Virtual Machine Scale Set. |
+|  | `vmss_identity_principal_id` | The Principal ID of the VMSS system-assigned managed identity. Empty when custom metrics are disabled or in Flexible mode (SystemAssigned identity is unsupported on Flexible). |
+| **Resource Group** | `resource_group_name` | The name of the Resource Group. |
+|  | `resource_group_id` | The ID of the Resource Group. |
+|  | `resource_group_location` | The location of the Resource Group. |
+| **Networking** | `subnet_ids` | The IDs of the subnets used by the VMSS [frontend, backend]. |
+|  | `nsg_id` | The ID of the Network Security Group used by the VMSS. |
+| **Load Balancers** | `frontend_lb_id` | The ID of the frontend load balancer. Null when deployment_mode is 'Internal' or 'None'. |
+|  | `backend_lb_id` | The ID of the backend load balancer. Null when deployment_mode is 'External' or 'None'. |
+|  | `frontend_lb_public_ip` | The public IP address of the frontend load balancer. Null when deployment_mode is 'Internal' or 'None'. |
+|  | `frontend_lb_public_ip_dns_name` | The FQDN of the frontend load balancer's public IP. Null when deployment_mode is 'Internal' or 'None'. |
+|  | `backend_lb_private_ip` | The private IPv4 address of the backend load balancer frontend. Null when deployment_mode is 'External' or 'None'. |

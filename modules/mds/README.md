@@ -172,3 +172,56 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **existing_storage_account_name** | The existing storage account name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |
 | **existing_storage_account_resource_group_name** | The existing storage account resource group name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |
 | **security_rules** | Additional security rules for the Network Security Group. Merged on top of the module's built-in rules for management/gateway communication. | list(any) | A security rule composed of: {name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description} | [] | No |
+
+## Outputs
+
+This module provides outputs for the MDS server, its IP addresses, and networking resources.
+
+### Adding Outputs to Your Configuration
+
+Module outputs are available as `module.<MODULE_NAME>.<OUTPUT_NAME>`. To expose them from your root configuration (so `terraform output` shows them), add output blocks **after** the module call.
+
+To see detailed output, define individual outputs for the specific values you need. Reference the [Available Outputs](#available-outputs) table below to see all available outputs.
+
+**Example:**
+
+```hcl
+output "public_ip_address" {
+  value       = module.example_module.public_ip_address
+  description = "The IPv4 public IP address of the MDS."
+}
+
+output "private_ip_address" {
+  value       = module.example_module.private_ip_address
+  description = "The primary private IPv4 address of the MDS."
+}
+```
+> **Note:** This module does not mark any outputs as `sensitive`. Before exposing an output in CI logs or shared tooling, review it and add `sensitive = true` to your root output if needed.
+
+### Viewing Outputs
+
+After `terraform apply`, outputs are displayed automatically. View them anytime using:
+
+```bash
+terraform output                    # View all outputs
+terraform output public_ip_address  # View specific output
+terraform output -json              # View in JSON format
+```
+
+### Available Outputs
+
+| Category | Output Name | Description |
+|----------|-------------|-------------|
+| **Resource Group** | `resource_group_name` | The name of the Resource Group. |
+|  | `resource_group_id` | The ID of the Resource Group. |
+|  | `resource_group_location` | The location of the Resource Group. |
+| **Networking** | `vnet_name` | The name of the virtual network used by the MDS. |
+|  | `subnet_ids` | The IDs of the subnets used by the MDS. |
+|  | `nsg_id` | The ID of the Network Security Group associated with the MDS. |
+|  | `nic_id` | The ID of the primary network interface attached to the MDS. |
+| **IP Addresses** | `public_ip_address` | The IPv4 public IP address of the MDS. |
+|  | `public_ip_dns_name` | The fully qualified domain name (FQDN) of the MDS public IP. |
+|  | `public_ipv6_address` | The IPv6 public IP address of the MDS. Null when IPv6 is disabled. |
+|  | `private_ip_address` | The primary private IPv4 address of the MDS. |
+| **Compute** | `vm_id` | The ID of the MDS virtual machine. |
+|  | `vm_name` | The name of the MDS virtual machine. |
