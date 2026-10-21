@@ -234,3 +234,68 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **use_public_ip_prefix** | Indicates whether the public IP resources will be deployed with public IP prefix. | boolean | true;<br />false; | false | No |
 | **create_public_ip_prefix** | Indicates whether the public IP prefix will be created or an existing one will be used. | boolean | true;<br />false; | false | No |
 | **existing_public_ip_prefix_id** | The existing public IP prefix resource ID. | string | Existing public IP prefix resource ID. | "" | No |
+
+## Outputs
+
+This module provides outputs for cluster members, VIPs, load balancers, and networking resources.
+
+### Adding Outputs to Your Configuration
+
+Module outputs are available as `module.<MODULE_NAME>.<OUTPUT_NAME>`. To expose them from your root configuration (so `terraform output` shows them), add output blocks **after** the module call.
+
+To see detailed output, define individual outputs for the specific values you need. Reference the [Available Outputs](#available-outputs) table below to see all available outputs.
+
+**Example:**
+
+```hcl
+output "cluster_vip_public_ip" {
+  value       = module.example_module.cluster_vip_public_ip
+  description = "The cluster VIP public IPv4 address."
+}
+
+output "lb_internal_private_ip" {
+  value       = module.example_module.lb_internal_private_ip
+  description = "The private IPv4 address of the internal (backend) load balancer frontend."
+}
+```
+> **Note:** This module does not mark any outputs as `sensitive`. Before exposing an output in CI logs or shared tooling, review it and add `sensitive = true` to your root output if needed.
+
+### Viewing Outputs
+
+After `terraform apply`, outputs are displayed automatically. View them anytime using:
+
+```bash
+terraform output                    # View all outputs
+terraform output cluster_vip_public_ip  # View specific output
+terraform output -json              # View in JSON format
+```
+
+### Available Outputs
+
+| Category | Output Name | Description |
+|----------|-------------|-------------|
+| **Resource Group** | `resource_group_name` | The name of the Resource Group. |
+|  | `resource_group_id` | The ID of the Resource Group. |
+|  | `resource_group_location` | The location of the Resource Group. |
+| **Networking** | `vnet_name` | The name of the virtual network used by the cluster. |
+|  | `subnet_ids` | The IDs of the subnets used by the cluster [frontend, backend]. |
+|  | `nsg_id` | The ID of the Network Security Group associated with the cluster. |
+| **IP Addresses** | `cluster_member_public_ips` | The IPv4 public IP addresses of the two cluster members. |
+|  | `cluster_member_public_ip_dns_names` | The FQDNs of the two cluster members' public IPs. |
+|  | `cluster_vip_public_ip` | The cluster VIP public IPv4 address. |
+|  | `cluster_vip_dns_name` | The FQDN of the cluster VIP public IP. |
+|  | `cluster_vip_id` | The resource ID of the cluster VIP public IP. |
+|  | `additional_vip_public_ips` | The public IPv4 addresses of the additional NICs' cluster VIPs, keyed by interface (e.g. "eth2"). Empty when deploy_additional_nic is false. |
+|  | `additional_vip_dns_names` | The FQDNs of the additional NICs' cluster VIP public IPs, keyed by interface (e.g. "eth2"). Empty when deploy_additional_nic is false. |
+|  | `additional_vip_ids` | The resource IDs of the additional NICs' cluster VIP public IPs, keyed by interface (e.g. "eth2"). Empty when deploy_additional_nic is false. |
+|  | `vips_public_ips` | The public IPv4 addresses of additional cluster VIPs (one per entry in vips_names). |
+|  | `vips_dns_names` | The FQDNs of additional cluster VIPs (one per entry in vips_names). |
+|  | `public_ip_prefix_id` | The ID of the public IP prefix created for the cluster. Null when not created. |
+| **Load Balancers** | `lb_external_id` | The ID of the external (frontend) load balancer. |
+|  | `lb_external_public_ip` | The public IPv4 address of the external (frontend) load balancer. |
+|  | `lb_external_public_ip_dns_name` | The FQDN of the external (frontend) load balancer's public IP. |
+|  | `lb_internal_id` | The ID of the internal (backend) load balancer. |
+|  | `lb_internal_private_ip` | The private IPv4 address of the internal (backend) load balancer frontend. |
+| **Compute** | `availability_set_id` | The ID of the Availability Set used by the cluster. Null when deploying to Availability Zones or an extended zone. |
+|  | `vm_ids` | The IDs of the cluster member virtual machines (length matches number_of_vm_instances). |
+|  | `vm_names` | The names of the cluster member virtual machines. |

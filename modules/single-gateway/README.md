@@ -358,3 +358,59 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **existing_storage_account_resource_group_name** | The existing storage account resource group name.<br/> Relevant only if `storage_account_deployment_mode = "Existing"`. | string | N/A | "" | No |
 | **sku** | SKU | string | N/A | "Standard" | No |
 | **security_rules** | Security  rules for the Network Security. | list(any) | A security rule composed of: {name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description} | Allow all inbound traffic. | No |
+
+## Outputs
+
+This module provides outputs for the gateway, its IP addresses, and networking resources.
+
+### Adding Outputs to Your Configuration
+
+Module outputs are available as `module.<MODULE_NAME>.<OUTPUT_NAME>`. To expose them from your root configuration (so `terraform output` shows them), add output blocks **after** the module call.
+
+To see detailed output, define individual outputs for the specific values you need. Reference the [Available Outputs](#available-outputs) table below to see all available outputs.
+
+**Example:**
+
+```hcl
+output "public_ip_address" {
+  value       = module.example_module.public_ip_address
+  description = "The IPv4 public IP address of the gateway."
+}
+
+output "frontend_private_ip_address" {
+  value       = module.example_module.frontend_private_ip_address
+  description = "The primary private IPv4 address of the gateway's frontend interface."
+}
+```
+> **Note:** This module does not mark any outputs as `sensitive`. Before exposing an output in CI logs or shared tooling, review it and add `sensitive = true` to your root output if needed.
+
+### Viewing Outputs
+
+After `terraform apply`, outputs are displayed automatically. View them anytime using:
+
+```bash
+terraform output                    # View all outputs
+terraform output public_ip_address  # View specific output
+terraform output -json              # View in JSON format
+```
+
+### Available Outputs
+
+| Category | Output Name | Description |
+|----------|-------------|-------------|
+| **Resource Group** | `resource_group_name` | The name of the Resource Group. |
+|  | `resource_group_id` | The ID of the Resource Group. |
+|  | `resource_group_location` | The location of the Resource Group. |
+| **Networking** | `vnet_name` | The name of the virtual network used by the gateway. |
+|  | `subnet_ids` | The IDs of the subnets used by the gateway [frontend, backend]. |
+|  | `nsg_id` | The ID of the Network Security Group associated with the gateway. |
+|  | `frontend_nic_id` | The ID of the frontend (eth0) network interface. |
+|  | `backend_nic_id` | The ID of the backend (eth1) network interface. |
+| **IP Addresses** | `public_ip_address` | The IPv4 public IP address of the gateway. |
+|  | `public_ip_dns_name` | The fully qualified domain name (FQDN) of the gateway's public IP. |
+|  | `public_ipv6_address` | The IPv6 public IP address of the gateway. Null when IPv6 is disabled. |
+|  | `frontend_private_ip_address` | The primary private IPv4 address of the gateway's frontend interface. |
+|  | `backend_private_ip_address` | The primary private IPv4 address of the gateway's backend interface. |
+| **Compute** | `vm_id` | The ID of the gateway virtual machine (zonal or extended-zone). |
+|  | `vm_name` | The name of the gateway virtual machine. |
+| **Load Balancers** | `ipv6_lb_id` | The ID of the IPv6 load balancer. Null when IPv6 is disabled. |

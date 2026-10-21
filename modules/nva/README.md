@@ -120,3 +120,56 @@ You can define if you want to deploy the NVA along side a new Virtual WAN or to 
 | **new_public_ip** | Deploy a new public IP resource as part of the managed app and attach to the NVA. | string | yes — create a new public IP (existing_public_ip must be empty);<br/>no — use existing_public_ip (must be provided); | "no" | No |
 | **nics_number** | Number of NICs to attach to the NVA. When set to 3, requires hub address prefix of /23 or larger and scale_unit of at least 10. | number | 2;<br/>3; | 2 | No |
 | **extra_nic_is_public_ip** | Assign a public IP to the additional (3rd) NIC. Only valid when nics_number is 3. | string | yes;<br/>no; | "no" | No |
+
+## Outputs
+
+This module provides outputs for the managed application, Virtual WAN hub, and routing intent.
+
+### Adding Outputs to Your Configuration
+
+Module outputs are available as `module.<MODULE_NAME>.<OUTPUT_NAME>`. To expose them from your root configuration (so `terraform output` shows them), add output blocks **after** the module call.
+
+To see detailed output, define individual outputs for the specific values you need. Reference the [Available Outputs](#available-outputs) table below to see all available outputs.
+
+**Example:**
+
+```hcl
+output "managed_app_id" {
+  value       = module.example_module.managed_app_id
+  description = "The ID of the Microsoft.Solutions managed application that provisions the NVA."
+}
+
+output "vwan_hub_id" {
+  value       = module.example_module.vwan_hub_id
+  description = "The ID of the Virtual WAN hub used (or created) for the NVA."
+}
+```
+> **Note:** This module does not mark any outputs as `sensitive`. Before exposing an output in CI logs or shared tooling, review it and add `sensitive = true` to your root output if needed.
+
+### Viewing Outputs
+
+After `terraform apply`, outputs are displayed automatically. View them anytime using:
+
+```bash
+terraform output                    # View all outputs
+terraform output managed_app_id  # View specific output
+terraform output -json              # View in JSON format
+```
+
+### Available Outputs
+
+| Category | Output Name | Description |
+|----------|-------------|-------------|
+| **Resource Group** | `resource_group_name` | The name of the managed-application Resource Group created for the NVA. |
+|  | `resource_group_id` | The ID of the managed-application Resource Group created for the NVA. |
+|  | `resource_group_location` | The location of the managed-application Resource Group created for the NVA. |
+| **Managed Application** | `managed_app_id` | The ID of the Microsoft.Solutions managed application that provisions the NVA. |
+|  | `managed_app_name` | The name of the Microsoft.Solutions managed application that provisions the NVA. |
+|  | `managed_resource_group_id` | The ID of the managed resource group that contains the NVA resources deployed by the managed application. |
+|  | `managed_app_identity_id` | The ID of the user-assigned managed identity used by the managed application. |
+|  | `managed_app_identity_principal_id` | The principal ID of the user-assigned managed identity used by the managed application. |
+| **Virtual WAN** | `vwan_hub_id` | The ID of the Virtual WAN hub used (or created) for the NVA. |
+|  | `vwan_hub_virtual_router_asn` | The ASN of the Virtual WAN hub's built-in router. |
+|  | `vwan_hub_virtual_router_ips` | The IP addresses of the Virtual WAN hub's built-in router. |
+|  | `routing_intent_id` | The ID of the routing-intent resource for the hub. Null when no routing intent policies are enabled. |
+| **Configuration** | `image_version` | The CloudGuard NVA image version selected for deployment. |
