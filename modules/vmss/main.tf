@@ -378,6 +378,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   overprovision       = false
   zones               = local.vmss_zones
 
+  encryption_at_host_enabled = var.encryption_at_host_enabled
+
   dynamic "identity" {
     for_each = (var.enable_custom_metrics || length(var.user_assigned_identity_ids) > 0) ? [1] : []
     content {

@@ -229,8 +229,19 @@ variable "management_name" {
 }
 
 variable "management_IP" {
-  description = "The IP address used to manage the VMSS instances."
+  description = "Private IP of the management server, reached through eth0. Required only when management_interface is 'eth0-private'; leave empty otherwise."
   type        = string
+  default     = ""
+
+  validation {
+    condition     = var.management_IP == "" || can(cidrhost("${var.management_IP}/32", 0))
+    error_message = "Variable [management_IP] must be a single IPv4 address without a prefix length."
+  }
+
+  validation {
+    condition     = var.management_interface != "eth0-private" || var.management_IP != ""
+    error_message = "Variable [management_IP] is required when management_interface is 'eth0-private'."
+  }
 }
 
 variable "management_interface" {
@@ -350,6 +361,12 @@ variable "os_disk_type" {
     condition     = var.os_disk_type == null || contains(["Premium_LRS", "StandardSSD_LRS", "Standard_LRS"], var.os_disk_type)
     error_message = "Variable [os_disk_type] must be one of 'Premium_LRS', 'StandardSSD_LRS'."
   }
+}
+
+variable "encryption_at_host_enabled" {
+  description = "Enable encryption at host (end-to-end encryption of temp disk and OS/data disk caches on the VM host). Requires the Microsoft.Compute/EncryptionAtHost feature registered on the subscription and a supported VM size; not compatible with Azure Disk Encryption."
+  type        = bool
+  default     = false
 }
 
 variable "add_storage_account_ip_rules" {
