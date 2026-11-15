@@ -302,6 +302,36 @@ variable "nsg_id" {
   default     = ""
 }
 
+//********************** Additional NICs Variables **************************//
+variable "deploy_additional_nic" {
+  description = "Deploy an additional NIC (eth2) on each cluster member, in its own subnet with its own cluster VIP."
+  type        = bool
+  default     = false
+}
+
+variable "additional_subnet_name" {
+  description = "The Virtual Network subnet name for the additional interface. Relevant only when deploy_additional_nic is true."
+  type        = string
+  default     = "Additional1"
+
+  validation {
+    condition     = !var.deploy_additional_nic || var.additional_subnet_name != ""
+    error_message = "Variable [additional_subnet_name] must not be empty when deploy_additional_nic is true."
+  }
+}
+
+variable "additional_subnet_prefix" {
+  description = "Address prefix to be used for the additional subnet. Relevant only when deploy_additional_nic is true and the module creates the Virtual Network."
+  type        = string
+  default     = "10.0.2.0/24"
+}
+
+variable "additional_subnet_start_address" {
+  description = "Starting host number in the additional subnet for member A. Member B uses +1 and the cluster VIP uses +2. Relevant only when deploy_additional_nic is true."
+  type        = number
+  default     = 5
+}
+
 variable "storage_account_deployment_mode" {
   description = "The deployment mode for the storage account. Options are 'New', 'Existing', 'Managed' and 'None'. If 'Existing', the storage account must be specified in the variable 'existing_storage_account_id'."
   type        = string

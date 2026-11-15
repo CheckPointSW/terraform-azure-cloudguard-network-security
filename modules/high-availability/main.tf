@@ -55,6 +55,61 @@ module "vnet" {
   tags                         = var.tags
 }
 
+//********************** Additional NICs Networking (eth2+) **************************//
+// Subnets for the additional interfaces are created only when the module creates the vNet.
+// When using an existing vNet, the subnets are looked up by name (same as frontend/backend).
+resource "azurerm_subnet" "additional" {
+  depends_on = [
+    module.vnet
+  ]
+  for_each                        = local.create_new_vnet ? local.additional_nics : {}
+  name                            = each.value.subnet_name
+  virtual_network_name            = module.vnet.name
+  resource_group_name             = module.common.resource_group_name
+  address_prefixes                = [each.value.subnet_prefix]
+  default_outbound_access_enabled = local.edge_zone != null && local.edge_zone != "" ? false : true
+}
+
+data "azurerm_subnet" "additional_existing" {
+  for_each             = !local.create_new_vnet ? local.additional_nics : {}
+  name                 = each.value.subnet_name
+  virtual_network_name = var.vnet_name
+  resource_group_name  = var.existing_vnet_resource_group
+}
+
+resource "azurerm_subnet_network_security_group_association" "additional_association" {
+  for_each                  = local.create_new_vnet ? local.additional_nics : {}
+  subnet_id                 = azurerm_subnet.additional[each.key].id
+  network_security_group_id = module.network_security_group.id
+}
+
+resource "azurerm_route_table" "additional" {
+  for_each            = local.create_new_vnet ? local.additional_nics : {}
+  name                = each.value.subnet_name
+  location            = module.common.resource_group_location
+  resource_group_name = module.common.resource_group_name
+
+  route {
+    name           = "Local-Subnet"
+    address_prefix = each.value.subnet_prefix
+    next_hop_type  = "VnetLocal"
+  }
+
+  route {
+    name           = "To-Internal"
+    address_prefix = var.address_space
+    next_hop_type  = "None"
+  }
+
+  tags = merge(lookup(var.tags, "route-table", {}), lookup(var.tags, "all", {}))
+}
+
+resource "azurerm_subnet_route_table_association" "additional_association" {
+  for_each       = local.create_new_vnet ? local.additional_nics : {}
+  subnet_id      = azurerm_subnet.additional[each.key].id
+  route_table_id = azurerm_route_table.additional[each.key].id
+}
+
 
 resource "random_id" "random_id" {
   byte_length = 13
@@ -68,7 +123,7 @@ resource "azurerm_public_ip_prefix" "public_ip_prefix" {
   name                = "${module.common.resource_group_name}-ipprefix"
   location            = module.common.resource_group_location
   resource_group_name = module.common.resource_group_name
-  prefix_length       = length(var.vips_names) > 4 ? 28 : length(var.vips_names) > 0 ? 29 : 30
+  prefix_length       = local.public_ip_count > 8 ? 28 : local.public_ip_count > 4 ? 29 : 30
   tags                = merge(lookup(var.tags, "public-ip-prefix", {}), lookup(var.tags, "all", {}))
 }
 
@@ -249,6 +304,63 @@ resource "azurerm_network_interface_backend_address_pool_association" "nic1_lb_a
   backend_address_pool_id = azurerm_lb_backend_address_pool.backend_lb_pool.id
 }
 
+//********************** Additional NICs (eth2+) **************************//
+// Attached to member 1's VIP ipconfig so it fails over with the cluster address, as for eth0.
+resource "azurerm_public_ip" "additional_vip" {
+  for_each            = local.additional_nics
+  name                = "${var.cluster_name}-${each.key}"
+  location            = module.common.resource_group_location
+  resource_group_name = module.common.resource_group_name
+  allocation_method   = module.vnet.allocation_method
+  sku                 = var.sku
+  domain_name_label   = "${lower(var.cluster_name)}-${each.key}-vip-${random_id.random_id.hex}"
+  public_ip_prefix_id = var.use_public_ip_prefix ? (var.create_public_ip_prefix ? azurerm_public_ip_prefix.public_ip_prefix[0].id : var.existing_public_ip_prefix_id) : null
+  edge_zone           = local.edge_zone
+  tags                = merge(lookup(var.tags, "public-ip", {}), lookup(var.tags, "all", {}))
+}
+
+// One NIC per member per additional interface. Member private IPs mirror the backend (eth1) NIC;
+// the cluster VIP is a static secondary ipconfig on member 1 (same pattern as the eth0 cluster VIP).
+resource "azurerm_network_interface" "additional" {
+  for_each                       = local.member_additional_nics
+  name                           = "${var.cluster_name}${each.value.member}-${each.value.eth_key}"
+  location                       = module.common.resource_group_location
+  resource_group_name            = module.common.resource_group_name
+  ip_forwarding_enabled          = true
+  accelerated_networking_enabled = true
+  edge_zone                      = local.edge_zone
+
+  ip_configuration {
+    name                          = "ipconfig${each.value.eth_index + 1}"
+    primary                       = true
+    subnet_id                     = local.additional_subnet_ids[each.value.eth_key]
+    private_ip_address_allocation = module.vnet.allocation_method
+    private_ip_address            = cidrhost(local.additional_subnet_prefixes[each.value.eth_key], each.value.member - 1 + each.value.start_address)
+  }
+
+  dynamic "ip_configuration" {
+    for_each = each.value.member == 1 ? [1] : []
+    content {
+      name                          = "cluster-vip-${each.value.eth_key}"
+      subnet_id                     = local.additional_subnet_ids[each.value.eth_key]
+      primary                       = false
+      private_ip_address_allocation = module.vnet.allocation_method
+      private_ip_address            = cidrhost(local.additional_subnet_prefixes[each.value.eth_key], each.value.start_address + 2)
+      public_ip_address_id          = azurerm_public_ip.additional_vip[each.value.eth_key].id
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to ip_configuration when Re-applying, e.g. because a cluster failover and associating the cluster- vip with the other member.
+      # updates these based on some ruleset managed elsewhere.
+      ip_configuration
+    ]
+  }
+
+  tags = merge(lookup(var.tags, "network-interface", {}), lookup(var.tags, "all", {}))
+}
+
 //********************** Load Balancers **************************//
 resource "azurerm_public_ip" "public_ip_lb" {
   name                = "frontend_lb_ip"
@@ -367,7 +479,8 @@ resource "azurerm_virtual_machine" "vm_instance_availability_set" {
   depends_on = [
     azurerm_network_interface.nic,
     azurerm_network_interface.nic1,
-    azurerm_network_interface.nic_vip
+    azurerm_network_interface.nic_vip,
+    azurerm_network_interface.additional
   ]
   count                         = local.availability_set_condition ? module.common.number_of_vm_instances : 0
   name                          = "${var.cluster_name}${count.index + 1}"
@@ -377,13 +490,13 @@ resource "azurerm_virtual_machine" "vm_instance_availability_set" {
   vm_size                       = module.common.vm_size
   delete_os_disk_on_termination = module.common.delete_os_disk_on_termination
   primary_network_interface_id  = count.index == 0 ? azurerm_network_interface.nic_vip.id : azurerm_network_interface.nic.id
-  network_interface_ids = count.index == 0 ? [
+  network_interface_ids = concat(count.index == 0 ? [
     azurerm_network_interface.nic_vip.id,
     azurerm_network_interface.nic1.0.id
     ] : [
     azurerm_network_interface.nic.id,
     azurerm_network_interface.nic1.1.id
-  ]
+  ], local.member_additional_nic_ids[count.index + 1])
 
   identity {
     type = module.common.vm_instance_identity
@@ -437,6 +550,8 @@ resource "azurerm_virtual_machine" "vm_instance_availability_set" {
       admin_shell                    = var.admin_shell
       serial_console_password_hash   = var.serial_console_password_hash
       maintenance_mode_password_hash = var.maintenance_mode_password_hash
+      deploy_additional_nic          = var.deploy_additional_nic
+      additional_cluster_vips        = local.additional_cluster_vips
     })
   }
 
@@ -463,7 +578,8 @@ resource "azurerm_virtual_machine" "vm_instance_availability_zone" {
   depends_on = [
     azurerm_network_interface.nic,
     azurerm_network_interface.nic1,
-    azurerm_network_interface.nic_vip
+    azurerm_network_interface.nic_vip,
+    azurerm_network_interface.additional
   ]
   count                         = local.availability_set_condition || var.extended_zone != "None" ? 0 : module.common.number_of_vm_instances
   name                          = "${var.cluster_name}${count.index + 1}"
@@ -473,13 +589,13 @@ resource "azurerm_virtual_machine" "vm_instance_availability_zone" {
   vm_size                       = module.common.vm_size
   delete_os_disk_on_termination = module.common.delete_os_disk_on_termination
   primary_network_interface_id  = count.index == 0 ? azurerm_network_interface.nic_vip.id : azurerm_network_interface.nic.id
-  network_interface_ids = count.index == 0 ? [
+  network_interface_ids = concat(count.index == 0 ? [
     azurerm_network_interface.nic_vip.id,
     azurerm_network_interface.nic1.0.id
     ] : [
     azurerm_network_interface.nic.id,
     azurerm_network_interface.nic1.1.id
-  ]
+  ], local.member_additional_nic_ids[count.index + 1])
 
   identity {
     type = module.common.vm_instance_identity
@@ -533,6 +649,8 @@ resource "azurerm_virtual_machine" "vm_instance_availability_zone" {
       admin_shell                    = var.admin_shell
       serial_console_password_hash   = var.serial_console_password_hash
       maintenance_mode_password_hash = var.maintenance_mode_password_hash
+      deploy_additional_nic          = var.deploy_additional_nic
+      additional_cluster_vips        = local.additional_cluster_vips
     })
   }
 
@@ -559,7 +677,8 @@ resource "azurerm_linux_virtual_machine" "vm_instance_availability_zone_extended
   depends_on = [
     azurerm_network_interface.nic,
     azurerm_network_interface.nic1,
-    azurerm_network_interface.nic_vip
+    azurerm_network_interface.nic_vip,
+    azurerm_network_interface.additional
   ]
 
   count                           = local.availability_set_condition || var.extended_zone == "None" ? 0 : module.common.number_of_vm_instances
@@ -574,13 +693,13 @@ resource "azurerm_linux_virtual_machine" "vm_instance_availability_zone_extended
   admin_password                  = module.common.admin_password
   disable_password_authentication = module.common.SSH_authentication_type_condition
 
-  network_interface_ids = count.index == 0 ? [
+  network_interface_ids = concat(count.index == 0 ? [
     azurerm_network_interface.nic_vip.id,
     azurerm_network_interface.nic1.0.id
     ] : [
     azurerm_network_interface.nic.id,
     azurerm_network_interface.nic1.1.id
-  ]
+  ], local.member_additional_nic_ids[count.index + 1])
 
   custom_data = base64encode(templatefile("${path.module}/cloud-init.sh", {
     installation_type              = module.common.installation_type
@@ -601,6 +720,8 @@ resource "azurerm_linux_virtual_machine" "vm_instance_availability_zone_extended
     admin_shell                    = var.admin_shell
     serial_console_password_hash   = var.serial_console_password_hash
     maintenance_mode_password_hash = var.maintenance_mode_password_hash
+    deploy_additional_nic          = var.deploy_additional_nic
+    additional_cluster_vips        = local.additional_cluster_vips
   }))
 
   identity {
