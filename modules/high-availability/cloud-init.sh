@@ -17,5 +17,6 @@ externalPrivateAddresses="${external_private_addresses}"
 customMetrics="${enable_custom_metrics}"
 adminShell="${admin_shell}"
 Vips='[{"name": "cluster-vip", "privateIPAddress": "${external_private_addresses}", "publicIPAddress": "${cluster_name}"}]'
+additionalClusterVips='%{ if deploy_additional_nic }${additional_cluster_vips}%{ endif }'
 passwordHash="${serial_console_password_hash}"
 MaintenanceModePassword="${maintenance_mode_password_hash}"

@@ -72,6 +72,10 @@ module "example_module" {
   backend_subnet_name             = "Backend"
   address_space                   = "10.0.0.0/16"
   subnet_prefixes                 = ["10.0.1.0/24", "10.0.2.0/24"]
+  deploy_additional_nic                = false
+  additional_subnet_name                    = "Additional1"
+  additional_subnet_prefix                  = "10.0.3.0/24"
+  additional_subnet_start_address           = 5
   nsg_id                          = ""
   storage_account_deployment_mode = "New"
   os_disk_type                    = "StandardSSD_LRS"
@@ -123,6 +127,21 @@ You can specify wether you want to create a new Virtual Network or use an existi
   existing_vnet_resource_group = "EXISTING VIRTUAL NETWORK RESOURCE GROUP NAME"
   ```
   When using an existing Virtual Network the variable `frontend_subnet_name` and `backend_subnet_name` will be used as the name of the existing subnets inside the Virtual Network, you can also ignore the `address_prefixes` when you use an existing Virtual Network.
+
+### Additional NIC:
+By default each cluster member is deployed with two NICs (frontend `eth0` and backend `eth1`). To attach an additional interface (`eth2`) to each member, set `deploy_additional_nic` to `true`:
+```
+deploy_additional_nic      = true
+additional_subnet_name          = "Additional1"
+additional_subnet_prefix        = "10.0.3.0/24"
+additional_subnet_start_address = 5
+```
+- The additional NIC is created as `eth2` on each member, with IP forwarding enabled. Member A uses `additional_subnet_start_address`, member B uses `+1`, and the cluster VIP uses `+2` (mirroring the `eth0` cluster VIP).
+- When the module creates the Virtual Network, the additional subnet (`additional_subnet_name` / `additional_subnet_prefix`) and its route table are created automatically. When using an existing Virtual Network, `additional_subnet_name` must reference an existing subnet and `additional_subnet_prefix` is ignored (the prefix is read from the existing subnet, same as the frontend/backend subnets); `additional_subnet_start_address` still applies to place the member and VIP static IPs within that subnet, just as `backend_private_ip_start_host` does for the backend NIC.
+- The additional NIC's cluster VIP always gets a public IP, like every other address in this module. It is attached to the VIP ipconfig so it fails over with the cluster address, and it is allocated from the public IP prefix when one is in use.
+- The VM size must support at least 3 NICs. Azure allows only 2 on 2- and 4-vCPU sizes such as `Standard_D4ds_v5`; use an 8-vCPU size (for example `Standard_D8ds_v5`) or larger.
+- `deploy_additional_nic = false` produces the same deployment as before this option existed (fully backward compatible).
+- Enabling `deploy_additional_nic` is intended for new deployments. On an already-deployed cluster it is not a safe in-place change: Azure cannot attach a NIC to a running VM, so the members must be deallocated. Updated cloud-init VIP metadata is not redelivered to existing members, and growing a public IP prefix can replace its public IPs.
 
 ### Availability types deployment:
 - To deploy the solution based on Azure Availability Set and create a new Availability Set for the virtual machines:
@@ -215,6 +234,10 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 | **backend_subnet_name** | The Virtual Network subnet name for the backend interface. | string | N/A | N/A | Yes |
 | **address_space** | The address prefixes of the virtual network. | string | Valid CIDR block | "10.0.0.0/16" | No |
 | **subnet_prefixes** | The address prefixes to be used for created subnets. | list(string) | The subnets need to contain within the address space for this virtual network (defined by the `address_space` variable). | ["10.0.0.0/24", "10.0.1.0/24"] | No |
+| **deploy_additional_nic** | Deploy an additional NIC (`eth2`) on each cluster member, in its own subnet with its own cluster VIP. Requires a VM size supporting 3+ NICs. | boolean | true;<br />false; | false | No |
+| **additional_subnet_name** | The Virtual Network subnet name for the additional interface. Relevant only when `deploy_additional_nic` is true. When using an existing Virtual Network this must reference an existing subnet. | string | N/A | "Additional1" | No |
+| **additional_subnet_prefix** | Address prefix to be used for the additional subnet. Relevant only when `deploy_additional_nic` is true and the module creates the Virtual Network. | string | Must be contained within the address space of the virtual network. | "10.0.2.0/24" | No |
+| **additional_subnet_start_address** | Starting host number in the additional subnet for member A. Member B uses +1 and the cluster VIP uses +2. Relevant only when `deploy_additional_nic` is true. | number | N/A | 5 | No |
 | **nsg_id** | Optional ID for a Network Security Group that already exists in Azure. If not provided, a default NSG will be created. | string | Existing NSG resource ID | "" | No |
 | **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None; | "New" | No |
 | **os_disk_type** | Type of the VM OS managed disk. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD. Defaults to Standard SSD (StandardSSD_LRS). | string | "Premium_LRS";<br/>"StandardSSD_LRS"; | "StandardSSD_LRS" | No |

@@ -53,6 +53,21 @@ output "cluster_vip_id" {
   value       = azurerm_public_ip.cluster_vip.id
 }
 
+output "additional_vip_public_ips" {
+  description = "The public IPv4 addresses of the additional NICs' cluster VIPs, keyed by interface (e.g. \"eth2\"). Empty when deploy_additional_nic is false."
+  value       = { for eth_key, pip in azurerm_public_ip.additional_vip : eth_key => pip.ip_address }
+}
+
+output "additional_vip_dns_names" {
+  description = "The FQDNs of the additional NICs' cluster VIP public IPs, keyed by interface (e.g. \"eth2\"). Empty when deploy_additional_nic is false."
+  value       = { for eth_key, pip in azurerm_public_ip.additional_vip : eth_key => pip.fqdn }
+}
+
+output "additional_vip_ids" {
+  description = "The resource IDs of the additional NICs' cluster VIP public IPs, keyed by interface (e.g. \"eth2\"). Empty when deploy_additional_nic is false."
+  value       = { for eth_key, pip in azurerm_public_ip.additional_vip : eth_key => pip.id }
+}
+
 output "vips_public_ips" {
   description = "The public IPv4 addresses of additional cluster VIPs (one per entry in vips_names)."
   value       = azurerm_public_ip.vips[*].ip_address
