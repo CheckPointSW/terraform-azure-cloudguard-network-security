@@ -78,6 +78,19 @@ resource "azurerm_public_ip_prefix" "public_ip_prefix" {
   tags                = merge(lookup(var.tags, "public-ip-prefix", {}), lookup(var.tags, "all", {}))
 }
 
+// Reserve a public IPv4 address pool for VMSS instances, separate from the load balancer prefix.
+resource "azurerm_public_ip_prefix" "instance_level" {
+  count               = var.instance_public_ip_prefix_mode == "New" ? 1 : 0
+  name                = "${var.vmss_name}-instance-ipprefix"
+  location            = module.common.resource_group_location
+  resource_group_name = module.common.resource_group_name
+  sku                 = "Standard"
+  ip_version          = "IPv4"
+  prefix_length       = 32 - log(var.instance_public_ip_prefix_address_count, 2)
+  zones               = local.instance_public_ip_prefix_zones
+  tags                = merge(lookup(var.tags, "public-ip-prefix", {}), lookup(var.tags, "all", {}))
+}
+
 resource "azurerm_public_ip" "public_ip_lb" {
   count               = local.create_frontend_lb ? 1 : 0
   name                = "${var.vmss_name}-app-1"
@@ -458,6 +471,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
         content {
           name                    = "${var.vmss_name}-public-ip"
           idle_timeout_in_minutes = 15
+          public_ip_prefix_id     = local.instance_public_ip_prefix_id
         }
       }
     }

@@ -346,6 +346,52 @@ variable "instance_level_public_ipv4" {
   default     = true
 }
 
+variable "instance_public_ip_prefix_mode" {
+  description = "Source of instance public IPv4 addresses: None (Azure-assigned), New (create a Public IP Prefix), or Existing (use existing_instance_public_ip_prefix_id). Independent of load balancer prefix settings."
+  type        = string
+  default     = "None"
+
+  validation {
+    condition     = try(contains(["None", "New", "Existing"], var.instance_public_ip_prefix_mode), false)
+    error_message = "instance_public_ip_prefix_mode must be None, New or Existing."
+  }
+
+  validation {
+    condition     = var.instance_public_ip_prefix_mode == "None" || var.instance_level_public_ipv4
+    error_message = "New and Existing modes require instance_level_public_ipv4 = true."
+  }
+
+  validation {
+    condition     = var.instance_public_ip_prefix_mode != "New" || try(tonumber(var.maximum_number_of_vm_instances) <= var.instance_public_ip_prefix_address_count, false)
+    error_message = "Maximum instances must not exceed instance_public_ip_prefix_address_count in New mode."
+  }
+}
+
+variable "instance_public_ip_prefix_address_count" {
+  description = "Number of public IPv4 addresses reserved in New mode: 16, 8, 4 or 2. Unused in other modes."
+  type        = number
+  default     = 16
+
+  validation {
+    condition     = try(contains([16, 8, 4, 2], var.instance_public_ip_prefix_address_count), false)
+    error_message = "instance_public_ip_prefix_address_count must be 16, 8, 4 or 2."
+  }
+}
+
+variable "existing_instance_public_ip_prefix_id" {
+  description = "Full resource ID of an existing Standard IPv4 Public IP Prefix in the scale set subscription and region. Required for Existing mode; leave empty otherwise. Caller owns the prefix and ensures compatible zones and free capacity."
+  type        = string
+  default     = ""
+
+  validation {
+    condition = var.instance_public_ip_prefix_mode == "Existing" ? can(regex(
+      "(?i)^/subscriptions/${var.subscription_id}/resourceGroups/[^/[:space:]]+/providers/Microsoft\\.Network/publicIPPrefixes/[^/[:space:]]+$",
+      var.existing_instance_public_ip_prefix_id
+    )) : var.existing_instance_public_ip_prefix_id == ""
+    error_message = "Existing mode requires a full Public IP Prefix resource ID in subscription_id; leave the ID empty in other modes."
+  }
+}
+
 variable "storage_account_deployment_mode" {
   description = "The deployment mode for the storage account. Options are 'New', 'Existing', 'Managed' and 'None'. If 'Existing', the storage account must be specified in the variable 'existing_storage_account_id'."
   type        = string
@@ -538,7 +584,7 @@ variable "enable_floating_ip" {
 }
 
 variable "use_public_ip_prefix" {
-  description = "Indicates whether the public IP resources will be deployed with public IP prefix."
+  description = "Indicates whether the load balancer frontend public IP will be allocated from a public IP prefix. Does not affect the VMSS instance-level public IPs (see instance_public_ip_prefix_mode)."
   type        = bool
   default     = false
 }
