@@ -198,7 +198,13 @@ module "example_module" {
 
 </details>
 
-## IPv6 Dual-Stack Support
+## Configuration
+
+Expand a section to view its settings and examples.
+
+<details>
+<summary><b>IPv6 Dual-Stack Support</b></summary>
+
 This module supports IPv6 dual-stack networking alongside the default IPv4 configuration. When enabled, the deployment automatically creates additional IPv6 resources including dual-stack load balancers with IPv6 frontend configurations.
 
 **To enable IPv6 dual-stack:**
@@ -244,9 +250,11 @@ This module supports IPv6 dual-stack networking alongside the default IPv4 confi
 - All IPv6 internet traffic flows through the External Load Balancer (inbound and outbound)
 - IPv6 outbound connectivity is handled by the load balancer's outbound rule (no instance-level public IPs)
 
-## Conditional creation
+</details>
 
-### Resource Group:
+<details>
+<summary><b>Resource Group</b></summary>
+
 You can specify whether you want to create a new Resource Group or use an existing one:
 - **To create a new Resource Group (default):**
   ```
@@ -260,7 +268,11 @@ You can specify whether you want to create a new Resource Group or use an existi
   ```
   The existing Resource Group must be in the same subscription and region as the deployment. Its ID can be copied from the Resource Group's Properties blade in the Azure Portal.
 
-### Network Security Group (subnet-level association):
+</details>
+
+<details>
+<summary><b>Network Security Group (subnet-level association)</b></summary>
+
 You can control NSG creation and subnet-level association:
 - **Create a new NSG and associate with subnets (default):**
   ```
@@ -281,7 +293,11 @@ You can control NSG creation and subnet-level association:
 
 **Note:** Azure [recommends keeping NSGs enabled](https://learn.microsoft.com/en-us/azure/security/fundamentals/network-best-practices) as part of network security best practices.
 
-### Instance-Level Public IP:
+</details>
+
+<details>
+<summary><b>Instance-Level Public IP</b></summary>
+
 You can control whether each VMSS instance gets a public IPv4 address on eth0:
 - **Enable per-instance public IP (default):**
   ```
@@ -293,7 +309,11 @@ You can control whether each VMSS instance gets a public IPv4 address on eth0:
   ```
   Instances are only reachable through a load balancer or private connectivity. When disabled, ensure your load balancer has the appropriate inbound and outbound rules configured to allow the required traffic.
 
-### Deployment Mode (Load Balancers):
+</details>
+
+<details>
+<summary><b>Deployment Mode (Load Balancers)</b></summary>
+
 The `deployment_mode` variable controls which load balancers are created:
 - **`Standard`** (default) — Creates both an External (public) and Internal (private) Load Balancer.
 - **`External`** — Creates only the External Load Balancer.
@@ -312,7 +332,11 @@ For IPv6 dual-stack with external load balancers:
   backend_lb_pool_v6_ids  = ["EXTERNAL BACKEND LB POOL ID (IPv6)"]
   ```
 
-### Virtual Network:
+</details>
+
+<details>
+<summary><b>Virtual Network</b></summary>
+
 You can specify whether you want to create a new Virtual Network or use an existing one:
 - **To create a new Virtual Network:**
   ```
@@ -335,7 +359,11 @@ When using an existing VNet with IPv6 enabled (`enable_ipv6 = true`):
 - The `subnet_ipv6_prefixes` variable can be set but will be ignored when using an existing vnet. It is only used when creating a new vnet.
 - The module automatically detects all IPv6 network configuration from Azure when using an existing vnet.
 
-### Availability types deployment:
+</details>
+
+<details>
+<summary><b>Availability types deployment</b></summary>
+
 - To define the number of zones for VMSS instances deployment in supported regions:
   ```
   availability_zones_num = "3"
@@ -352,7 +380,12 @@ When using an existing VNet with IPv6 enabled (`enable_ipv6 = true`):
   - If the number of availability zones above is greater than zero, the module automatically spreads instances across that many zones (starting from zone 1).
   - If the number of availability zones above is zero, no zones are used and instances are placed without zone affinity.
 
-### Public IP Prefix:
+</details>
+
+<details>
+<summary><b>Load Balancer Public IP Prefix</b></summary>
+
+The variables `use_public_ip_prefix`, `create_public_ip_prefix` and `existing_public_ip_prefix_id` apply only to the external load balancer frontend public IP.
 To create new public IP prefix for the public IP:
   ```
   use_public_ip_prefix    = true
@@ -365,7 +398,43 @@ To use an existing public IP prefix for the public IP:
   existing_public_ip_prefix_id = "public IP prefix resource id"
   ```
 
-### Cloud Metrics:
+</details>
+
+<details>
+<summary><b>VMSS Instance Public IP Prefix</b></summary>
+
+Allocate instance public IPv4 addresses on eth0 from one prefix in Uniform or Flexible mode, independently of the load balancer prefix:
+
+- `None` (default): keep Azure-assigned instance IPs without a prefix.
+- `New`: create a Standard IPv4 prefix owned by this module.
+- `Existing`: Use an existing Public IP Prefix by supplying its resource ID.
+
+Create a new prefix (16 addresses by default):
+
+```hcl
+instance_public_ip_prefix_mode          = "New"
+instance_public_ip_prefix_address_count = 16 # Allowed: 16, 8, 4, 2
+```
+
+Use an existing prefix:
+
+```hcl
+instance_public_ip_prefix_mode        = "Existing"
+existing_instance_public_ip_prefix_id = "/subscriptions/<SUB_ID>/resourceGroups/<RG_NAME>/providers/Microsoft.Network/publicIPPrefixes/<PREFIX_NAME>"
+```
+
+For `New`, choose 16 (default), 8, 4 or 2 addresses; the module calculates the Azure CIDR prefix length automatically.
+
+Both `New` and `Existing` require `instance_level_public_ipv4 = true`.
+
+- **New:** Keep `maximum_number_of_vm_instances` within the selected address count. Prefix zones follow the VMSS configuration and regional metadata.
+- **Existing:** Supply a Standard IPv4 prefix in the same subscription and region, with compatible zones and enough free addresses for the scale set.
+
+</details>
+
+<details>
+<summary><b>Cloud Metrics</b></summary>
+
 To create role assignment and enable CloudGuard metrics in order to send statuses and statistics collected from VMSS instances to the Azure Monitor service:
 ```
 enable_custom_metrics = true
@@ -378,7 +447,11 @@ authorization.RoleAssignmentsClient#Create: ... Status=403 Code="AuthorizationFa
 ```
 If you cannot grant this permission, disable cloud metrics to skip the role assignment.
 
-### Boot Diagnostics:
+</details>
+
+<details>
+<summary><b>Boot Diagnostics</b></summary>
+
 To use boot diagnostics you can choose the storage account type or you can disable the boot diagnostics entirely.<br/>
 You can configure boot diagnostics by selecting the desired storage account deployment mode or disabling boot diagnostics entirely. The available options for `storage_account_deployment_mode` are:
 - `New` Creates a new storage account to be used for boot diagnostics.<br/>
@@ -397,7 +470,11 @@ Usage: `storage_account_deployment_mode = "None"`<br/>
 **Note:** When deploying a Virtual Machine Scale Set (VMSS) using Terraform, Azure does not currently support deployment without boot diagnostics. Therefore, setting storage_account_deployment_mode = "None" behaves the same as "Managed" — a managed storage account will still be created automatically.
 For more information, refer to the [Azure Terraform documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine_scale_set#boot_diagnostics-1).
 
-### Orchestration Mode (Uniform / Flexible):
+</details>
+
+<details>
+<summary><b>Orchestration Mode (Uniform / Flexible)</b></summary>
+
 The module deploys the scale set in one of two Azure orchestration modes, selected by `orchestration_mode`:
 - `Uniform` (default): the classic scale set (`azurerm_linux_virtual_machine_scale_set`), where all members share one identical VM model.
 - `Flexible`: Azure Flexible orchestration — scale set members are deployed and managed as standard Azure VMs (`azurerm_orchestrated_virtual_machine_scale_set`), each individually addressable via the standard Azure VM APIs and spread across fault domains (and availability zones). Cloud Firewall uses this mode for per-instance effective-route visibility and VTap packet mirroring on the gateway NICs, which Uniform cannot expose.
@@ -410,7 +487,10 @@ platform_fault_domain_count = 1
 
 **Notes:** Flexible mode has no custom-metrics support (`enable_custom_metrics` is ignored - SystemAssigned identity is unavailable), and the orchestration mode is immutable once deployed. For general Flexible orchestration behavior (outbound connectivity, fault domains, image immutability) see the [Azure orchestration modes docs](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-orchestration-modes).
 
-## Module's variables:
+</details>
+
+## Module variables
+
 | Name | Description | Type | Allowed values | Default | Required |
 | ---- | ----------- | ---- | -------------- | ------- | -------- |
 | **client_secret** | The client secret value of the Service Principal used to deploy the solution. Optional - omit to authenticate via Azure CLI, Managed Identity, or ARM_* environment variables. | string | N/A | null | No |
@@ -457,6 +537,9 @@ platform_fault_domain_count = 1
 | **enable_nsg** | Controls whether a Network Security Group is created or used. When true and a new VNet is created, the NSG is associated with the subnets. Set to false to skip NSG creation and association entirely. | boolean | true;<br />false; | true | No |
 | **nsg_id** | The ID of an existing Network Security Group to use. If left empty (`""`), a new NSG will be created. Only relevant when `enable_nsg = true`. | string | Existing NSG resource ID | "" | No |
 | **instance_level_public_ipv4** | Assign a public IPv4 address to each VMSS instance on eth0. Set to false when instances should only be reachable through a load balancer or private connectivity. | boolean | true;<br />false; | true | No |
+| **instance_public_ip_prefix_mode** | Source of instance public IPv4 addresses. `None` preserves the existing behavior, `New` creates a Standard IPv4 prefix, `Existing` uses the supplied prefix. Prefix modes require public instance IPs; maximum instances must fit a new prefix. Independent of the load balancer prefix. | string | "None";<br />"New";<br />"Existing"; | "None" | No |
+| **instance_public_ip_prefix_address_count** | Number of public IPv4 addresses for `New`: 16, 8, 4 or 2. Validated in every mode; only used by `New`. Converted to Azure prefix length internally. | number | 16;<br />8;<br />4;<br />2; | 16 | No |
+| **existing_instance_public_ip_prefix_id** | Full Public IP Prefix resource ID in `subscription_id`. Required only for `Existing`; empty in other modes. Caller owns the prefix and ensures compatible region, Standard IPv4, zones and free capacity. | string | Public IP Prefix resource ID | "" | No |
 | **storage_account_deployment_mode** | Choose the boot diagnostics storage account type. | string | New;<br/> Existing;<br/> Managed;<br/> None; | "New" | No |
 | **os_disk_type** | Type of the VM OS managed disk. Premium_LRS = Premium SSD, StandardSSD_LRS = Standard SSD. Defaults to Standard SSD (StandardSSD_LRS). | string | "Premium_LRS";<br/>"StandardSSD_LRS"; | "StandardSSD_LRS" | No |
 | **encryption_at_host_enabled** | Enable encryption at host: the VM host encrypts the temp disk and the OS/data disk caches, and data flows encrypted to Storage.<br/> Prerequisites: the `Microsoft.Compute/EncryptionAtHost` feature registered on the subscription, a VM size that supports it, and no Azure Disk Encryption. On an existing VMSS, only instances created after enabling it are encrypted. | boolean | true;<br />false; | false | No |
@@ -480,7 +563,7 @@ platform_fault_domain_count = 1
 | **frontend_load_distribution** | The load balancing distribution method for the External Load Balancer. | string | "Default" - None (5-tuple);<br />"SourceIP" - ClientIP (2-tuple);<br />"SourceIPProtocol" - ClientIP and protocol (3-tuple). | "Default" | No |
 | **backend_load_distribution** | The load balancing distribution method for the Internal Load Balancer. | string | "Default" - None (5-tuple);<br />"SourceIP" - ClientIP (2-tuple);<br />"SourceIPProtocol" - ClientIP and protocol (3-tuple). | "Default" | No |
 | **enable_floating_ip** | Indicates whether the load balancers will be deployed with floating IP. | boolean | true;<br />false; | true | No |
-| **use_public_ip_prefix** | Indicates whether the public IP resources will be deployed with public IP prefix. | boolean | true;<br />false; | false | No |
+| **use_public_ip_prefix** | Indicates whether the load balancer frontend public IP will be allocated from a public IP prefix. Does not affect the VMSS instance-level public IPs (see `instance_public_ip_prefix_mode`). | boolean | true;<br />false; | false | No |
 | **create_public_ip_prefix** | Indicates whether the public IP prefix will be created or an existing one will be used. | boolean | true;<br />false; | false | No |
 | **existing_public_ip_prefix_id** | The existing public IP prefix resource ID. | string | Existing public IP prefix resource ID | "" | No |
 | **security_rules** | Security rules for the Network Security Group. | list(any) | A security rule composed of: {name, priority, direction, access, protocol, source_port_ranges, destination_port_ranges, source_address_prefix, destination_address_prefix, description} | Allow all inbound traffic. | No |
@@ -545,6 +628,8 @@ terraform output -json              # View in JSON format
 |  | `nsg_id` | The ID of the Network Security Group used by the VMSS. |
 | **Load Balancers** | `frontend_lb_id` | The ID of the frontend load balancer. Null when deployment_mode is 'Internal' or 'None'. |
 |  | `backend_lb_id` | The ID of the backend load balancer. Null when deployment_mode is 'External' or 'None'. |
+|  | `instance_public_ip_prefix_id` | The ID of the public IP prefix the instance-level public IPs are allocated from. Null when `instance_public_ip_prefix_mode` is `None`. |
+|  | `instance_public_ip_prefix_cidr` | The CIDR of the prefix created by the module (for example 20.61.14.0/28). Null unless `instance_public_ip_prefix_mode` is `New`. |
 |  | `frontend_lb_public_ip` | The public IP address of the frontend load balancer. Null when deployment_mode is 'Internal' or 'None'. |
 |  | `frontend_lb_public_ip_dns_name` | The FQDN of the frontend load balancer's public IP. Null when deployment_mode is 'Internal' or 'None'. |
 |  | `backend_lb_private_ip` | The private IPv4 address of the backend load balancer frontend. Null when deployment_mode is 'External' or 'None'. |

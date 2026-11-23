@@ -58,6 +58,16 @@ output "frontend_lb_public_ip_dns_name" {
   value       = local.create_frontend_lb ? azurerm_public_ip.public_ip_lb[0].fqdn : null
 }
 
+output "instance_public_ip_prefix_id" {
+  description = "The ID of the public IP prefix the instance-level public IPs are allocated from. Null when instance_public_ip_prefix_mode is 'None'."
+  value       = local.instance_public_ip_prefix_id
+}
+
+output "instance_public_ip_prefix_cidr" {
+  description = "The CIDR of the public IP prefix created by the module (for example 20.61.14.0/28), which is the reserved range for instance public IPv4 addresses. Null unless instance_public_ip_prefix_mode is 'New'."
+  value       = var.instance_public_ip_prefix_mode == "New" ? azurerm_public_ip_prefix.instance_level[0].ip_prefix : null
+}
+
 output "backend_lb_private_ip" {
   description = "The private IPv4 address of the backend load balancer frontend. Null when deployment_mode is 'External' or 'None'."
   value       = local.create_backend_lb ? azurerm_lb.backend_lb[0].frontend_ip_configuration[0].private_ip_address : null

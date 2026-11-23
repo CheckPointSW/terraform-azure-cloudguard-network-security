@@ -27,6 +27,17 @@ locals {
 
   is_flexible = var.orchestration_mode == "Flexible"
 
+  instance_public_ip_prefix_id = var.instance_public_ip_prefix_mode == "New" ? azurerm_public_ip_prefix.instance_level[0].id : (
+    var.instance_public_ip_prefix_mode == "Existing" ? var.existing_instance_public_ip_prefix_id : null
+  )
+
+  # A multi-zone prefix is zone-redundant across the region, not a VMSS zone subset.
+  instance_public_ip_prefix_zones = var.availability_zones_num == "0" ? null : (
+    length(local.vmss_zones) == 1 ? local.vmss_zones : [
+      for zone in module.common.regions[0].regions_by_name[var.location].zones : tostring(zone)
+    ]
+  )
+
   vmss_id = local.is_flexible ? (
     azurerm_orchestrated_virtual_machine_scale_set.vmss_flex[0].id
   ) : azurerm_linux_virtual_machine_scale_set.vmss[0].id

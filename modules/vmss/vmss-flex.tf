@@ -95,6 +95,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss_flex" {
         content {
           name                    = "${var.vmss_name}-public-ip"
           idle_timeout_in_minutes = 15
+          public_ip_prefix_id     = local.instance_public_ip_prefix_id
         }
       }
     }
