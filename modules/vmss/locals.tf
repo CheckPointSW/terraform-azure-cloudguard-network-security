@@ -46,7 +46,7 @@ locals {
     azurerm_orchestrated_virtual_machine_scale_set.vmss_flex[0].name
   ) : azurerm_linux_virtual_machine_scale_set.vmss[0].name
 
-  vmss_principal_id = local.is_flexible ? "" : lookup(azurerm_linux_virtual_machine_scale_set.vmss[0].identity[0], "principal_id")
+  vmss_principal_id = var.enable_custom_metrics && !local.is_flexible ? azurerm_linux_virtual_machine_scale_set.vmss[0].identity[0].principal_id : ""
 
   vmss_zones = var.availability_zones_num == "0" ? null : (
     length(var.availability_zones) == 0 ? [for i in range(1, tonumber(var.availability_zones_num) + 1) : tostring(i)] : var.availability_zones
